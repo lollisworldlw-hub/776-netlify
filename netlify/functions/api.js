@@ -37,9 +37,8 @@ export async function handler(event) {
     }
 
     // 4) Send to Google Apps Script Web App
-    const GAS_URL =
-      "https://script.google.com/macros/s/AKfycbye4L7aW1hbRCfd_oNhNAT3sw7LVYhd2NGTbT6pJ4cvTS0bbtlIjz7qv_h2-W9qHSgcWg/exec";
-
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbz4ackhnUqtXg-ZgcoByzHPs1lVwkzXVsS3UiyiQSm-9a1Z34ub88YF0vzrk6m6FPq8CA/exec";
+    
     const gasRes = await fetch(GAS_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
