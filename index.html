@@ -122,7 +122,38 @@
       cursor: pointer;
       white-space: nowrap;
     }
+/* Submit loading state */
+.btn[disabled]{
+  opacity: .65;
+  cursor: not-allowed;
+  filter: saturate(.75);
+}
 
+.btnInner{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+}
+
+.spinner{
+  width:16px;
+  height:16px;
+  border-radius:50%;
+  border:2px solid rgba(7,16,26,.25);
+  border-top-color: rgba(7,16,26,.95);
+  animation: spin .9s linear infinite;
+  display:none;
+}
+
+.btn.loading .spinner{
+  display:inline-block;
+}
+
+@keyframes spin{
+  to{ transform: rotate(360deg); }
+}
+    
     .radioPills{ display:flex; gap:12px; flex-wrap:wrap; }
     .pill{
       flex:0 0 auto;
@@ -309,7 +340,12 @@
           </div>
 
           <div class="full btnRow">
-            <button id="submitBtn" class="btn" type="button" onclick="submitFinal()">Submit</button>
+            <button id="submitBtn" class="btn" type="button" onclick="submitFinal()">
+  <span class="btnInner">
+    <span id="submitBtnText">Submit</span>
+    <span class="spinner" aria-hidden="true"></span>
+  </span>
+</button>
             <button class="btn ghost" type="button" onclick="resetForm()">Reset</button>
           </div>
 
@@ -414,12 +450,12 @@
     function addFriendRow(){
       const row = document.createElement("div");
       row.className = "friendRow";
-      row.innerHTML = `
-        <input data-f="username" type="text" placeholder="Friend username *">
-        <input data-f="alliance" type="text" maxlength="4" placeholder="Alliance (1–4) *">
-        <input data-f="server" type="text" inputmode="numeric" maxlength="3" placeholder="Server (3) *">
-        <input data-f="thpM" type="text" inputmode="numeric" maxlength="3" placeholder="THP M (0–999) *">
-        <button class="removeLink" type="button" onclick="this.parentElement.remove();">Remove</button>
+     row.innerHTML = `
+  <input data-f="username" type="text" placeholder="Friend username (required)">
+  <input data-f="alliance" type="text" maxlength="4" placeholder="Alliance (e.g. ZPA2)">
+  <input data-f="server" type="text" inputmode="numeric" maxlength="3" placeholder="Server (e.g. 776)">
+  <input data-f="thpM" type="text" inputmode="numeric" maxlength="3" placeholder="THP M (e.g. 245)">
+  <button class="removeLink" type="button" onclick="this.parentElement.remove();">Remove</button>
       `;
       friendsList.appendChild(row);
     }
@@ -527,26 +563,38 @@
     }
 
     async function submitFinal(){
-      showMsg("msg", "");
-      const btn = document.getElementById("submitBtn");
-      btn.disabled = true;
+  showMsg("msg", "");
 
-      try{
-        const res = await api("submitSurvey", { payload: getPayload() });
+  const btn = document.getElementById("submitBtn");
+  const btnText = document.getElementById("submitBtnText");
 
-        document.getElementById("formScreen").style.display = "none";
-        document.getElementById("successScreen").style.display = "block";
-        document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
+  // Prevent double taps (Android/in-game browsers love double-firing)
+  if (btn.dataset.loading === "1") return;
 
-        closeModal();
-      }catch(err){
-        showMsg("msg", (err.name === "AbortError")
-          ? "Network timeout. Try again (Android webview can be slow)."
-          : (err.message || String(err)), false);
-      }finally{
-        btn.disabled = false;
-      }
-    }
+  btn.dataset.loading = "1";
+  btn.disabled = true;
+  btn.classList.add("loading");
+  if (btnText) btnText.textContent = "Submitting...";
+
+  try{
+    const res = await api("submitSurvey", { payload: getPayload() });
+
+    document.getElementById("formScreen").style.display = "none";
+    document.getElementById("successScreen").style.display = "block";
+    document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
+
+    closeModal();
+  }catch(err){
+    showMsg("msg", (err.name === "AbortError")
+      ? "Network timeout. Try again (Android webview can be slow)."
+      : (err.message || String(err)), false);
+  }finally{
+    btn.disabled = false;
+    btn.classList.remove("loading");
+    btn.dataset.loading = "0";
+    if (btnText) btnText.textContent = "Submit";
+  }
+}
 
     function submitAnother(){
       resetForm();
