@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>776 Survey</title>
+
+  <style>
+    :root{
+      --panel: rgba(10, 12, 26, .72);
+      --stroke: rgba(120, 140, 255, .22);
+      --text:#eaf0ff;
+      --muted:#aab3d6;
+      --danger:#ff4b7a;
+      --ok:#42ffb0;
+    }
+    *{box-sizing:border-box;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+    body{
+      margin:0; padding:24px;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(55,215,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 80% 20%, rgba(255,75,216,.18), transparent 60%),
+        radial-gradient(800px 600px at 55% 85%, rgba(120,90,255,.14), transparent 60%),
+        linear-gradient(180deg, #050510, #070812 35%, #050510);
+      min-height:100vh;
+    }
+    .wrap{max-width:860px;margin:0 auto;}
+    .card{
+      border:1px solid var(--stroke);
+      background:var(--panel);
+      border-radius:18px;
+      padding:22px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 18px 60px rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      position:relative;
+      overflow:hidden;
+    }
+    .ring{
+      position:absolute; inset:-120px -140px auto auto;
+      width:420px;height:420px;border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, rgba(55,215,255,.35), transparent 55%),
+                  radial-gradient(circle at 70% 70%, rgba(255,75,216,.28), transparent 55%);
+      filter: blur(2px);
+      opacity:.85;
+      pointer-events:none;
+      transform: rotate(18deg);
+    }
+    .hdr{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:10px;}
+    .hdrLeft{display:flex; gap:16px; align-items:center;}
+    .logoWrap{
+      width:92px;height:92px;border-radius:22px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.55);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 26px rgba(55,215,255,.12), 0 0 26px rgba(255,75,216,.10);
+    }
+    .logo{
+      width:100%;height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    h1{margin:0;font-size:22px;letter-spacing:.6px;}
+    .sub{margin:2px 0 0;color:var(--muted);font-size:13px;}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px;}
+    .full{grid-column:1/-1;}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px;}
+    input, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6, 7, 18, .65);
+      color:var(--text);
+      outline:none;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.2) inset;
+    }
+    input:focus, select:focus{
+      border-color: rgba(55,215,255,.35);
+      box-shadow: 0 0 0 3px rgba(55,215,255,.12);
+    }
+    .miniLabel{font-size:11px;color:var(--muted);margin-top:6px;}
+    .inlineM{display:flex; gap:10px; align-items:center;}
+    .mBadge{
+      padding:10px 12px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.55);
+      color:var(--muted);
+      min-width:44px;text-align:center;
+    }
+    .btn{
+      border:0; cursor:pointer;
+      padding:12px 14px;border-radius:14px;
+      color:#07101a;
+      background: linear-gradient(90deg, rgba(55,215,255,.95), rgba(255,75,216,.95));
+      font-weight:900;
+      letter-spacing:.4px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.45);
+      width:100%;
+    }
+    .ghost{
+      background: transparent;
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--text);
+      box-shadow:none;
+      font-weight:800;
+    }
+    .btnRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .msg{margin-top:12px;font-size:13px;}
+    .err{color:var(--danger);}
+    .ok{color:var(--ok);}
+    .hint{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.4;}
+
+    .smallBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(6,7,18,.35);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .radioPills{ display:flex; gap:12px; flex-wrap:wrap; }
+    .pill{
+      flex:0 0 auto;
+      display:flex; align-items:center; gap:10px;
+      padding:12px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.45);
+      cursor:pointer;
+      user-select:none;
+      min-width:140px;
+    }
+    .pill input{ width:18px;height:18px; margin:0; accent-color: #59d9ff; }
+    .pill span{font-weight:900;}
+
+    .friendsBox{
+      margin-top:12px;
+      padding:12px;
+      border-radius:16px;
+      border:1px dashed rgba(255,255,255,.16);
+      background: rgba(6,7,18,.30);
+    }
+    .friendsTop{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      margin-bottom:10px;
+    }
+    .tinyBtn{ width:auto; padding:10px 12px; border-radius:12px; font-weight:900; }
+    .friendRow{
+      display:grid;
+      grid-template-columns: 1.6fr .8fr .7fr .7fr auto;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(6,7,18,.55);
+      margin-top:10px;
+    }
+    .friendRow input{ padding:10px 10px; border-radius:12px; }
+    .removeLink{
+      border:0;
+      background:transparent;
+      color: rgba(255,255,255,.75);
+      font-weight:900;
+      cursor:pointer;
+      padding:6px 8px;
+    }
+    .removeLink:hover{color:#fff;text-decoration:underline;}
+
+    .modalBackdrop{
+      position:fixed; inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+      z-index:9999;
+    }
+    .modal{
+      width:min(720px, 100%);
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(10, 12, 26, .92);
+      border-radius:18px;
+      padding:16px;
+      box-shadow: 0 22px 80px rgba(0,0,0,.65);
+    }
+    .modalHdr{
+      display:flex;justify-content:space-between;align-items:center;gap:12px;
+      margin-bottom:10px;
+    }
+    .xBtn{ border:0;background:transparent;color:var(--muted); font-size:22px;cursor:pointer;line-height:1; }
+    .modalGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;}
+
+    .successTitle{ font-size:24px; font-weight:1000; letter-spacing:.4px; margin:0; }
+    .badge{
+      display:inline-block;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(6,7,18,.55);
+      font-weight:900;
+      margin-top:10px;
+      word-break:break-all;
+    }
+
+    @media (max-width:720px){
+      .grid{grid-template-columns:1fr;}
+      .btnRow{grid-template-columns:1fr;}
+      .modalGrid{grid-template-columns:1fr;}
+      .friendRow{grid-template-columns:1fr 1fr; }
+      .friendRow .removeLink{justify-self:end;}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="card">
+      <div class="ring"></div>
+
+      <div class="hdr">
+        <div class="hdrLeft">
+          <div class="logoWrap">
+            <!-- FIXED: absolute path -->
+            <img class="logo" src="/assets/logo.png" alt="776 logo">
+          </div>
+          <div>
+            <h1>776 Transfer Survey</h1>
+            <div class="sub">Fast, mobile-friendly, and clean.</div>
+          </div>
+        </div>
+        <button class="smallBtn" type="button" onclick="openModal()">Save for later</button>
+      </div>
+
+      <div id="formScreen">
+        <div class="grid">
+          <div>
+            <label>1) Username <span style="color:var(--danger)">*</span></label>
+            <input id="username" type="text" placeholder="Your in-game username" required>
+          </div>
+
+          <div>
+            <label>2) Current Alliance <span style="color:var(--danger)">*</span></label>
+            <input id="currentAlliance" type="text" maxlength="4" placeholder="e.g. ZPA2" required>
+            <div class="miniLabel">1–4 letters/numbers</div>
+          </div>
+
+          <div>
+            <label>3) Current Server <span style="color:var(--danger)">*</span></label>
+            <input id="currentServer" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 776" required>
+            <div class="miniLabel">Exactly 3 digits</div>
+          </div>
+
+          <div>
+            <label>4) Total hero power <span style="color:var(--danger)">*</span></label>
+            <div class="inlineM">
+              <input id="totalHeroPowerM" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 245" required>
+              <div class="mBadge">M</div>
+            </div>
+            <div class="miniLabel">Millions only (0–999)</div>
+          </div>
+
+          <div class="full">
+            <label>5) Are you looking to come with friends? <span style="color:var(--danger)">*</span></label>
+            <div class="radioPills">
+              <label class="pill">
+                <input type="radio" name="coming" id="comingNo" value="No" checked>
+                <span>No</span>
+              </label>
+              <label class="pill">
+                <input type="radio" name="coming" id="comingYes" value="Yes">
+                <span>Yes</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="full friendsBox" id="friendsBox" style="display:none;">
+            <div class="friendsTop">
+              <div>
+                <div style="font-weight:1000;">6) Friends (only if Yes)</div>
+                <div class="hint">One compact row per friend — you can add unlimited.</div>
+              </div>
+              <button class="btn ghost tinyBtn" type="button" onclick="addFriendRow()">+ Add friend</button>
+            </div>
+            <div id="friendsList"></div>
+          </div>
+
+          <div>
+            <label>7) Which alliance are you interested in joining? <span style="color:var(--danger)">*</span></label>
+            <select id="interestedAlliance" onchange="toggleOtherAlliance()">
+              <option value="" selected disabled>Select one</option>
+              <option>Any</option>
+              <option>Zpa</option>
+              <option>Zx7</option>
+              <option>Ephx</option>
+              <option>Iny</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div id="otherAllianceWrap" style="display:none;">
+            <label>Other alliance name <span style="color:var(--danger)">*</span></label>
+            <input id="interestedAllianceOther" type="text" placeholder="Type the alliance name">
+          </div>
+
+          <div class="full btnRow">
+            <button id="submitBtn" class="btn" type="button" onclick="submitFinal()">Submit</button>
+            <button class="btn ghost" type="button" onclick="resetForm()">Reset</button>
+          </div>
+
+          <div class="full msg" id="msg"></div>
+        </div>
+      </div>
+
+      <div id="successScreen" style="display:none;">
+        <div style="margin-top:10px;">
+          <div class="successTitle">Submitted ✅</div>
+          <div class="hint">Thanks! Your response is saved. If you came with friends, they’re linked in the same Group ID.</div>
+          <div class="badge" id="groupBadge"></div>
+          <div class="btnRow" style="margin-top:16px;">
+            <button class="btn" type="button" onclick="submitAnother()">Submit another</button>
+            <button class="btn ghost" type="button" onclick="window.close()">Close</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modalBackdrop" id="modalBackdrop" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modalHdr">
+        <div>
+          <div style="font-weight:1000; font-size:16px;">Save for later</div>
+          <div class="hint">No login needed. Device save works only on this phone/browser. Resume code works anywhere.</div>
+        </div>
+        <button class="xBtn" onclick="closeModal()">×</button>
+      </div>
+
+      <div class="modalGrid">
+        <button class="btn ghost" type="button" onclick="saveDraftDevice()">Save on this device</button>
+        <button class="btn ghost" type="button" onclick="loadDraftDevice()">Load from this device</button>
+        <button class="btn" type="button" onclick="getResumeCode()">Get Resume Code</button>
+
+        <div style="grid-column:1/-1;">
+          <label>Load with Resume Code</label>
+          <div class="btnRow">
+            <input id="resumeCode" type="text" placeholder="Example: 776-AB12CD">
+            <button class="btn ghost" type="button" onclick="loadByResumeCode()">Load</button>
+          </div>
+        </div>
+
+        <div style="grid-column:1/-1;" class="msg" id="draftMsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // same endpoint you're already using
+    const API_ENDPOINT = "/.netlify/functions/api";
+
+    function showMsg(elId, text, ok=false){
+      const el = document.getElementById(elId);
+      el.textContent = text;
+      el.className = "msg " + (ok ? "ok" : "err");
+    }
+
+    // fetch with timeout (helps “stuck” Android webviews)
+    async function fetchWithTimeout(url, options, ms = 15000) {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), ms);
+      try {
+        return await fetch(url, { ...options, signal: controller.signal });
+      } finally {
+        clearTimeout(t);
+      }
+    }
+
+    async function api(action, data){
+      const res = await fetchWithTimeout(API_ENDPOINT, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ action, ...data })
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!json || json.ok !== true) throw new Error(json.error || "Request failed.");
+      return json;
+    }
+
+    const friendsBox = document.getElementById("friendsBox");
+    const friendsList = document.getElementById("friendsList");
+
+    function toggleOtherAlliance(){
+      const val = document.getElementById("interestedAlliance").value;
+      document.getElementById("otherAllianceWrap").style.display = (val === "Other") ? "block" : "none";
+    }
+
+    function syncFriendsVisibility(){
+      const yes = document.getElementById("comingYes").checked;
+      friendsBox.style.display = yes ? "block" : "none";
+      if (yes && friendsList.children.length === 0) addFriendRow();
+      if (!yes) friendsList.innerHTML = "";
+    }
+    document.getElementById("comingYes").addEventListener("change", syncFriendsVisibility);
+    document.getElementById("comingNo").addEventListener("change", syncFriendsVisibility);
+    syncFriendsVisibility();
+
+    function addFriendRow(){
+      const row = document.createElement("div");
+      row.className = "friendRow";
+      row.innerHTML = `
+        <input data-f="username" type="text" placeholder="Friend username *">
+        <input data-f="alliance" type="text" maxlength="4" placeholder="Alliance (1–4) *">
+        <input data-f="server" type="text" inputmode="numeric" maxlength="3" placeholder="Server (3) *">
+        <input data-f="thpM" type="text" inputmode="numeric" maxlength="3" placeholder="THP M (0–999) *">
+        <button class="removeLink" type="button" onclick="this.parentElement.remove();">Remove</button>
+      `;
+      friendsList.appendChild(row);
+    }
+
+    function gatherFriends(){
+      const rows = [...friendsList.querySelectorAll(".friendRow")];
+      return rows.map(r => {
+        const get = (key) => (r.querySelector(`[data-f="${key}"]`)?.value || "").trim();
+        return { username: get("username"), alliance: get("alliance"), server: get("server"), thpM: get("thpM") };
+      });
+    }
+
+    function getPayload(){
+      return {
+        username: document.getElementById("username").value.trim(),
+        currentAlliance: document.getElementById("currentAlliance").value.trim(),
+        currentServer: document.getElementById("currentServer").value.trim(),
+        totalHeroPowerM: document.getElementById("totalHeroPowerM").value.trim(),
+        comingWithFriends: document.getElementById("comingYes").checked,
+        friends: document.getElementById("comingYes").checked ? gatherFriends() : [],
+        interestedAlliance: document.getElementById("interestedAlliance").value,
+        interestedAllianceOther: document.getElementById("interestedAllianceOther").value.trim()
+      };
+    }
+
+    function openModal(){ showMsg("draftMsg",""); document.getElementById("modalBackdrop").style.display="flex"; }
+    function closeModal(){ document.getElementById("modalBackdrop").style.display="none"; }
+
+    const LS_KEY = "776_survey_draft_v1";
+
+    function saveDraftDevice(){
+      try{
+        localStorage.setItem(LS_KEY, JSON.stringify(getPayload()));
+        showMsg("draftMsg", "Saved on this device ✅", true);
+      }catch(e){
+        showMsg("draftMsg", "Could not save on device: " + (e.message || e), false);
+      }
+    }
+
+    function loadDraftDevice(){
+      try{
+        const raw = localStorage.getItem(LS_KEY);
+        if(!raw) return showMsg("draftMsg", "No device draft found.", false);
+        applyPayload(JSON.parse(raw));
+        showMsg("draftMsg", "Loaded from this device ✅", true);
+      }catch(e){
+        showMsg("draftMsg", "Could not load device draft: " + (e.message || e), false);
+      }
+    }
+
+    async function getResumeCode(){
+      showMsg("draftMsg", "");
+      try{
+        const res = await api("saveDraft", { payload: getPayload() });
+        showMsg("draftMsg", `Resume Code: ${res.code} (valid until ${res.expiresAt}) ✅`, true);
+        document.getElementById("resumeCode").value = res.code;
+      }catch(err){
+        showMsg("draftMsg", err.message || String(err), false);
+      }
+    }
+
+    async function loadByResumeCode(){
+      showMsg("draftMsg", "");
+      const code = document.getElementById("resumeCode").value.trim();
+      try{
+        const res = await api("loadDraft", { code });
+        applyPayload(res.payload);
+        showMsg("draftMsg", "Loaded from Resume Code ✅", true);
+      }catch(err){
+        showMsg("draftMsg", err.message || String(err), false);
+      }
+    }
+
+    function applyPayload(p){
+      document.getElementById("username").value = p.username || "";
+      document.getElementById("currentAlliance").value = p.currentAlliance || "";
+      document.getElementById("currentServer").value = p.currentServer || "";
+      document.getElementById("totalHeroPowerM").value = p.totalHeroPowerM || "";
+
+      const yes = !!p.comingWithFriends;
+      document.getElementById("comingYes").checked = yes;
+      document.getElementById("comingNo").checked = !yes;
+
+      friendsList.innerHTML = "";
+      syncFriendsVisibility();
+
+      if (yes) {
+        const arr = Array.isArray(p.friends) ? p.friends : [];
+        if (arr.length === 0) addFriendRow();
+        else {
+          arr.forEach(() => addFriendRow());
+          [...friendsList.querySelectorAll(".friendRow")].forEach((row, i) => {
+            const f = arr[i] || {};
+            row.querySelector(`[data-f="username"]`).value = f.username || "";
+            row.querySelector(`[data-f="alliance"]`).value = f.alliance || "";
+            row.querySelector(`[data-f="server"]`).value = f.server || "";
+            row.querySelector(`[data-f="thpM"]`).value = f.thpM || "";
+          });
+        }
+      }
+
+      document.getElementById("interestedAlliance").value = p.interestedAlliance || "";
+      document.getElementById("interestedAllianceOther").value = p.interestedAllianceOther || "";
+      toggleOtherAlliance();
+    }
+
+    async function submitFinal(){
+      showMsg("msg", "");
+      const btn = document.getElementById("submitBtn");
+      btn.disabled = true;
+
+      try{
+        const res = await api("submitSurvey", { payload: getPayload() });
+
+        document.getElementById("formScreen").style.display = "none";
+        document.getElementById("successScreen").style.display = "block";
+        document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
+
+        closeModal();
+      }catch(err){
+        showMsg("msg", (err.name === "AbortError")
+          ? "Network timeout. Try again (Android webview can be slow)."
+          : (err.message || String(err)), false);
+      }finally{
+        btn.disabled = false;
+      }
+    }
+
+    function submitAnother(){
+      resetForm();
+      document.getElementById("successScreen").style.display = "none";
+      document.getElementById("formScreen").style.display = "block";
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function resetForm(){
+      document.getElementById("username").value = "";
+      document.getElementById("currentAlliance").value = "";
+      document.getElementById("currentServer").value = "";
+      document.getElementById("totalHeroPowerM").value = "";
+      document.getElementById("interestedAlliance").value = "";
+      document.getElementById("interestedAllianceOther").value = "";
+      document.getElementById("otherAllianceWrap").style.display = "none";
+
+      document.getElementById("comingNo").checked = true;
+      document.getElementById("comingYes").checked = false;
+
+      friendsList.innerHTML = "";
+      syncFriendsVisibility();
+
+      showMsg("msg", "");
+      showMsg("draftMsg", "");
+    }
+  </script>
+</body>
+</html>
