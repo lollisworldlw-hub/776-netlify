@@ -305,6 +305,23 @@
     font-size:22px;
   }
 }
+
+    /* Tiny toast for autosave/restore */
+.toast{
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  background: rgba(6,7,18,.92);
+  border: 1px solid rgba(255,255,255,.14);
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: var(--text);
+  font-weight: 900;
+  font-size: 13px;
+  box-shadow: 0 18px 60px rgba(0,0,0,.55);
+  z-index: 99999;
+}
   </style>
 </head>
 
@@ -324,7 +341,7 @@
       <div class="heroSub">Server 776 relocation interest form</div>
     </div>
   </div>
-
+<div id="toast" class="toast" style="display:none;"></div>
   <button class="smallBtn" type="button" onclick="openModal()">Save for later</button>
 </div>
 
@@ -338,13 +355,13 @@
           <div>
             <label>2) Current Alliance <span style="color:var(--danger)">*</span></label>
             <input id="currentAlliance" type="text" maxlength="4" placeholder="e.g. ZPA2" required>
-            <div class="miniLabel">1–4 letters/numbers</div>
+            <div class="miniLabel"></div>
           </div>
 
           <div>
             <label>3) Current Server <span style="color:var(--danger)">*</span></label>
             <input id="currentServer" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 776" required>
-            <div class="miniLabel">Exactly 3 digits</div>
+            <div class="miniLabel"></div>
           </div>
 
           <div>
@@ -353,7 +370,7 @@
               <input id="totalHeroPowerM" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 245" required>
               <div class="mBadge">M</div>
             </div>
-            <div class="miniLabel">Millions only (0–999)</div>
+            <div class="miniLabel"></div>
           </div>
 
           <div class="full">
@@ -374,7 +391,7 @@
             <div class="friendsTop">
               <div>
                 <div style="font-weight:1000;">6) Friends (only if Yes)</div>
-                <div class="hint">One compact row per friend — you can add unlimited.</div>
+                <div class="hint">Add all your friends below</div>
               </div>
               <button class="btn ghost tinyBtn" type="button" onclick="addFriendRow()">+ Add friend</button>
             </div>
@@ -418,6 +435,9 @@
           <div class="successTitle">Submitted ✅</div>
           <div class="hint">Thanks! Your response is saved. If you came with friends, they’re linked in the same Group ID.</div>
           <div class="badge" id="groupBadge"></div>
+          <button class="btn ghost" type="button" onclick="copyGroupId()" style="margin-top:10px;">
+  📋 Copy Group ID
+</button>
           <div class="btnRow" style="margin-top:16px;">
             <button class="btn" type="button" onclick="submitAnother()">Submit another</button>
             <button class="btn ghost" type="button" onclick="window.close()">Close</button>
@@ -545,6 +565,75 @@
     function closeModal(){ document.getElementById("modalBackdrop").style.display="none"; }
 
     const LS_KEY = "776_survey_draft_v1";
+
+    // --- Silent autosave ---
+const AUTO_SAVE_KEY = "776_survey_autosave_v1";
+let autoSaveStarted = false;
+let autoSaveTimer = null;
+
+function toast(msg, ms=1400){
+  const t = document.getElementById("toast");
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(t._hideTimer);
+  t._hideTimer = setTimeout(() => (t.style.display = "none"), ms);
+}
+
+function hasAnyInput_(p){
+  if (!p) return false;
+  if (p.username) return true;
+  if (p.currentAlliance) return true;
+  if (p.currentServer) return true;
+  if (p.totalHeroPowerM) return true;
+  if (p.interestedAlliance) return true;
+  if (p.interestedAllianceOther) return true;
+  if (p.comingWithFriends) return true;
+  if (Array.isArray(p.friends) && p.friends.some(f => (f.username||"").trim() || (f.alliance||"").trim() || (f.server||"").trim() || (f.thpM||"").trim())) return true;
+  return false;
+}
+
+function startSilentAutosave(){
+  if (autoSaveStarted) return;
+  autoSaveStarted = true;
+
+  // Save on any input/change
+  const events = ["input", "change"];
+  events.forEach(evt => {
+    document.addEventListener(evt, () => {
+      // Debounce saves
+      clearTimeout(autoSaveTimer);
+      autoSaveTimer = setTimeout(() => {
+        try{
+          const payload = getPayload();
+          if (!hasAnyInput_(payload)) return;
+          localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(payload));
+          toast("Saved ✓");
+        }catch(e){
+          // ignore (some webviews can block storage)
+        }
+      }, 900);
+    }, { passive: true });
+  });
+}
+
+function tryAutoRestore(){
+  try{
+    const raw = localStorage.getItem(AUTO_SAVE_KEY);
+    if (!raw) return;
+    const payload = JSON.parse(raw);
+    if (!hasAnyInput_(payload)) return;
+
+    applyPayload(payload);
+    toast("Restored your progress ✓", 1800);
+  }catch(e){
+    // ignore
+  }
+}
+
+// Start autosave + try restore on page load
+tryAutoRestore();
+startSilentAutosave();
 
     function saveDraftDevice(){
       try{
@@ -681,6 +770,40 @@
       showMsg("msg", "");
       showMsg("draftMsg", "");
     }
+
+    function copyGroupId(){
+  const text = document.getElementById("groupBadge")?.textContent || "";
+  if (!text) return;
+
+  // Extract just the UUID part if present
+  const id = text.replace("Group ID:", "").trim();
+
+  // Try modern clipboard first
+  if (navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(id).then(() => {
+      toast("Copied ✓");
+    }).catch(() => fallbackCopy_(id));
+  } else {
+    fallbackCopy_(id);
+  }
+}
+
+function fallbackCopy_(value){
+  try{
+    const ta = document.createElement("textarea");
+    ta.value = value;
+    ta.setAttribute("readonly", "");
+    ta.style.position = "fixed";
+    ta.style.top = "-9999px";
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    toast("Copied ✓");
+  }catch(e){
+    toast("Copy failed", 1800);
+  }
+}
   </script>
 </body>
 </html>
