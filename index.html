@@ -322,6 +322,19 @@
   box-shadow: 0 18px 60px rgba(0,0,0,.55);
   z-index: 99999;
 }
+
+    /* Save-for-later reveal */
+#saveBtn{
+  transition: opacity .25s ease, transform .25s ease;
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+#saveBtn.visible{
+  display:inline-flex !important;
+  opacity: 1;
+  transform: translateY(0);
+}
   </style>
 </head>
 
@@ -342,7 +355,9 @@
     </div>
   </div>
 <div id="toast" class="toast" style="display:none;"></div>
-  <button class="smallBtn" type="button" onclick="openModal()">Save for later</button>
+  <button id="saveBtn" class="smallBtn" type="button" onclick="openModal()" style="display:none;">
+  Save for later
+</button>
 </div>
 
       <div id="formScreen">
@@ -626,6 +641,7 @@ function tryAutoRestore(){
 
     applyPayload(payload);
     toast("Restored your progress ✓", 1800);
+    revealSaveBtn(); // <-- ADD THIS LINE
   }catch(e){
     // ignore
   }
@@ -804,6 +820,24 @@ function fallbackCopy_(value){
     toast("Copy failed", 1800);
   }
 }
+
+    // Reveal "Save for later" after first input
+let saveBtnShown = false;
+
+function revealSaveBtn(){
+  if (saveBtnShown) return;
+  const btn = document.getElementById("saveBtn");
+  if (!btn) return;
+
+  btn.style.display = "inline-flex";
+  requestAnimationFrame(() => btn.classList.add("visible"));
+  saveBtnShown = true;
+}
+
+// Listen for first user interaction
+["input", "change"].forEach(evt => {
+  document.addEventListener(evt, revealSaveBtn, { once: true, passive: true });
+});
   </script>
 </body>
 </html>
