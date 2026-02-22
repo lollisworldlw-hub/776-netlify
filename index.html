@@ -246,6 +246,65 @@
       .friendRow{grid-template-columns:1fr 1fr; }
       .friendRow .removeLink{justify-self:end;}
     }
+
+    /* Mobile hero header */
+.mobileHero{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:12px;
+}
+
+.heroCenter{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.bigLogo{
+  width:96px;
+  height:96px;
+  border-radius:26px;
+}
+
+.heroText{
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.heroTitle{
+  font-size:20px;
+  font-weight:1000;
+  letter-spacing:.4px;
+}
+
+.heroSub{
+  font-size:13px;
+  color:var(--muted);
+}
+
+/* Extra polish on small screens */
+@media (max-width:600px){
+  .mobileHero{
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  .heroCenter{
+    flex-direction:column;
+  }
+
+  .bigLogo{
+    width:120px;
+    height:120px;
+  }
+
+  .heroTitle{
+    font-size:22px;
+  }
+}
   </style>
 </head>
 
@@ -254,19 +313,20 @@
     <div class="card">
       <div class="ring"></div>
 
-      <div class="hdr">
-        <div class="hdrLeft">
-          <div class="logoWrap">
-            <!-- FIXED: absolute path -->
-            <img class="logo" src="/assets/logo.png" alt="776 logo">
-          </div>
-          <div>
-            <h1>776 Transfer Survey</h1>
-            <div class="sub"></div>
-          </div>
-        </div>
-        <button class="smallBtn" type="button" onclick="openModal()">Save for later</button>
-      </div>
+      <div class="hdr mobileHero">
+  <div class="heroCenter">
+    <div class="logoWrap bigLogo">
+      <img class="logo" src="/assets/logo.png" alt="776 logo">
+    </div>
+
+    <div class="heroText">
+      <div class="heroTitle">776 Transfer Survey</div>
+      <div class="heroSub">Server 776 relocation interest form</div>
+    </div>
+  </div>
+
+  <button class="smallBtn" type="button" onclick="openModal()">Save for later</button>
+</div>
 
       <div id="formScreen">
         <div class="grid">
