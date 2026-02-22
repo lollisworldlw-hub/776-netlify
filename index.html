@@ -302,20 +302,40 @@
 }
 .groupNote b{ font-weight:1000; }
 
+    .heroCenter{
+  justify-content:center;
+}
+
 @media (max-width:600px){
   .mobileHero{
     flex-direction:column;
     align-items:center;
+    justify-content:center;
     text-align:center;
   }
+
   .heroCenter{
+    width:100%;
+    display:flex;
     flex-direction:column;
+    align-items:center;
+    justify-content:center;
   }
+
   .heroLogo{
-    width:150px; /* BIG on mobile */
-    margin-bottom:4px;
+    width:175px;          /* slightly bigger */
+    margin: 0 auto 6px;   /* forces perfect centering */
+  }
+
+  .groupNote{
+    width:100%;
+    max-width:520px;      /* keeps it nice + centered */
+    margin-left:auto;
+    margin-right:auto;
   }
 }
+
+    
   </style>
 </head>
 
@@ -334,7 +354,6 @@
 
       <div class="groupNote">
         ✅ Only <b>one person per group</b> should submit this form.
-        Add friends below so everyone stays linked together.
       </div>
     </div>
   </div>
