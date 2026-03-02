@@ -122,38 +122,38 @@
       cursor: pointer;
       white-space: nowrap;
     }
-/* Submit loading state */
-.btn[disabled]{
-  opacity: .65;
-  cursor: not-allowed;
-  filter: saturate(.75);
-}
+    /* Submit loading state */
+    .btn[disabled]{
+      opacity: .65;
+      cursor: not-allowed;
+      filter: saturate(.75);
+    }
 
-.btnInner{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-}
+    .btnInner{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+    }
 
-.spinner{
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  border:2px solid rgba(7,16,26,.25);
-  border-top-color: rgba(7,16,26,.95);
-  animation: spin .9s linear infinite;
-  display:none;
-}
+    .spinner{
+      width:16px;
+      height:16px;
+      border-radius:50%;
+      border:2px solid rgba(7,16,26,.25);
+      border-top-color: rgba(7,16,26,.95);
+      animation: spin .9s linear infinite;
+      display:none;
+    }
 
-.btn.loading .spinner{
-  display:inline-block;
-}
+    .btn.loading .spinner{
+      display:inline-block;
+    }
 
-@keyframes spin{
-  to{ transform: rotate(360deg); }
-}
-    
+    @keyframes spin{
+      to{ transform: rotate(360deg); }
+    }
+
     .radioPills{ display:flex; gap:12px; flex-wrap:wrap; }
     .pill{
       flex:0 0 auto;
@@ -183,7 +183,7 @@
     .tinyBtn{ width:auto; padding:10px 12px; border-radius:12px; font-weight:900; }
     .friendRow{
       display:grid;
-      grid-template-columns: 1.6fr .8fr .7fr .7fr auto;
+      grid-template-columns: 1.6fr .8fr .7fr .7fr .8fr auto; /* UPDATED: added seat color column */
       gap:10px;
       align-items:center;
       padding:10px;
@@ -247,95 +247,89 @@
       .friendRow .removeLink{justify-self:end;}
     }
 
-  
-
-
-
     /* Tiny toast for autosave/restore */
-.toast{
-  position: fixed;
-  left: 50%;
-  bottom: 18px;
-  transform: translateX(-50%);
-  background: rgba(6,7,18,.92);
-  border: 1px solid rgba(255,255,255,.14);
-  padding: 10px 12px;
-  border-radius: 14px;
-  color: var(--text);
-  font-weight: 900;
-  font-size: 13px;
-  box-shadow: 0 18px 60px rgba(0,0,0,.55);
-  z-index: 99999;
-}
+    .toast{
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      transform: translateX(-50%);
+      background: rgba(6,7,18,.92);
+      border: 1px solid rgba(255,255,255,.14);
+      padding: 10px 12px;
+      border-radius: 14px;
+      color: var(--text);
+      font-weight: 900;
+      font-size: 13px;
+      box-shadow: 0 18px 60px rgba(0,0,0,.55);
+      z-index: 99999;
+    }
 
     /* Save-for-later reveal */
-#saveBtn{
-  transition: opacity .25s ease, transform .25s ease;
-  opacity: 0;
-  transform: translateY(-4px);
-}
+    #saveBtn{
+      transition: opacity .25s ease, transform .25s ease;
+      opacity: 0;
+      transform: translateY(-4px);
+    }
 
-#saveBtn.visible{
-  display:inline-flex !important;
-  opacity: 1;
-  transform: translateY(0);
-}
+    #saveBtn.visible{
+      display:inline-flex !important;
+      opacity: 1;
+      transform: translateY(0);
+    }
 
     /* ===== Clean logo (no box) + big mobile sizing ===== */
-.heroLogo{
-  width:96px;
-  height:auto;
-  display:block;
-  /* soft neon glow without a box */
-  filter: drop-shadow(0 10px 30px rgba(120,160,255,.45));
-}
+    .heroLogo{
+      width:96px;
+      height:auto;
+      display:block;
+      /* soft neon glow without a box */
+      filter: drop-shadow(0 10px 30px rgba(120,160,255,.45));
+    }
 
-/* Message box under title */
-.groupNote{
-  margin-top:10px;
-  padding:10px 12px;
-  border-radius:14px;
-  border:1px solid rgba(255,255,255,.10);
-  background: rgba(6,7,18,.35);
-  font-size:13px;
-  line-height:1.35;
-}
-.groupNote b{ font-weight:1000; }
+    /* Message box under title */
+    .groupNote{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.35);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .groupNote b{ font-weight:1000; }
 
     .heroCenter{
-  justify-content:center;
-}
+      justify-content:center;
+    }
 
-@media (max-width:600px){
-  .mobileHero{
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    text-align:center;
-  }
+    @media (max-width:600px){
+      .mobileHero{
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+        text-align:center;
+      }
 
-  .heroCenter{
-    width:100%;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-  }
+      .heroCenter{
+        width:100%;
+        display:flex;
+        flex-direction:column;
+        align-items:center;
+        justify-content:center;
+      }
 
-  .heroLogo{
-    width:175px;          /* slightly bigger */
-    margin: 0 auto 6px;   /* forces perfect centering */
-  }
+      .heroLogo{
+        width:175px;          /* slightly bigger */
+        margin: 0 auto 6px;   /* forces perfect centering */
+      }
 
-  .groupNote{
-    width:100%;
-    max-width:520px;      /* keeps it nice + centered */
-    margin-left:auto;
-    margin-right:auto;
-  }
-}
-
-    
+      .groupNote{
+        width:100%;
+        max-width:520px;      /* keeps it nice + centered */
+        margin-left:auto;
+        margin-right:auto;
+      }
+    }
   </style>
 </head>
 
@@ -345,23 +339,23 @@
       <div class="ring"></div>
 
       <div class="hdr mobileHero">
-  <div class="heroCenter">
-    <img class="heroLogo" src="/assets/logo.png" alt="776 logo">
+        <div class="heroCenter">
+          <img class="heroLogo" src="/assets/logo.png" alt="776 logo">
 
-    <div class="heroText">
-      <div class="heroTitle">776 Transfer Survey</div>
-      <div class="heroSub"></div>
+          <div class="heroText">
+            <div class="heroTitle">776 Transfer Survey</div>
+            <div class="heroSub"></div>
 
-      <div class="groupNote">
-        ✅ Only <b>one person per group</b> should submit this form.
+            <div class="groupNote">
+              ✅ Only <b>one person per group</b> should submit this form.
+            </div>
+          </div>
+        </div>
+
+        <button id="saveBtn" class="smallBtn" type="button" onclick="openModal()" style="display:none;">
+          Save for later
+        </button>
       </div>
-    </div>
-  </div>
-
-  <button id="saveBtn" class="smallBtn" type="button" onclick="openModal()" style="display:none;">
-    Save for later
-  </button>
-</div>
 
       <div id="formScreen">
         <div class="grid">
@@ -382,11 +376,20 @@
             <div class="miniLabel"></div>
           </div>
 
+          <!-- UPDATED: seat color dropdown next to THP -->
           <div>
             <label>4) Total hero power <span style="color:var(--danger)">*</span></label>
             <div class="inlineM">
               <input id="totalHeroPowerM" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 245" required>
               <div class="mBadge">M</div>
+
+              <select id="seatColorMain" aria-label="Seat Color">
+                <option value="" selected disabled>Seat Color</option>
+                <option value="Gold">Gold</option>
+                <option value="Purple">Purple</option>
+                <option value="Blue">Blue</option>
+                <option value="White">White</option>
+              </select>
             </div>
             <div class="miniLabel"></div>
           </div>
@@ -436,11 +439,11 @@
 
           <div class="full btnRow">
             <button id="submitBtn" class="btn" type="button" onclick="submitFinal()">
-  <span class="btnInner">
-    <span id="submitBtnText">Submit</span>
-    <span class="spinner" aria-hidden="true"></span>
-  </span>
-</button>
+              <span class="btnInner">
+                <span id="submitBtnText">Submit</span>
+                <span class="spinner" aria-hidden="true"></span>
+              </span>
+            </button>
             <button class="btn ghost" type="button" onclick="resetForm()">Reset</button>
           </div>
 
@@ -454,8 +457,8 @@
           <div class="hint">Thanks! Your response is saved. If you came with friends, they’re linked in the same Group ID.</div>
           <div class="badge" id="groupBadge"></div>
           <button class="btn ghost" type="button" onclick="copyGroupId()" style="margin-top:10px;">
-  📋 Copy Group ID
-</button>
+            📋 Copy Group ID
+          </button>
           <div class="btnRow" style="margin-top:16px;">
             <button class="btn" type="button" onclick="submitAnother()">Submit another</button>
             <button class="btn ghost" type="button" onclick="window.close()">Close</button>
@@ -495,7 +498,7 @@
   </div>
 
   <div id="toast" class="toast" style="display:none;"></div>
-  
+
   <script>
     // same endpoint you're already using
     const API_ENDPOINT = "/.netlify/functions/api";
@@ -550,12 +553,22 @@
     function addFriendRow(){
       const row = document.createElement("div");
       row.className = "friendRow";
-     row.innerHTML = `
-  <input data-f="username" type="text" placeholder="Friend username (required)">
-  <input data-f="alliance" type="text" maxlength="4" placeholder="Alliance (e.g. ZPA2)">
-  <input data-f="server" type="text" inputmode="numeric" maxlength="3" placeholder="Server (e.g. 776)">
-  <input data-f="thpM" type="text" inputmode="numeric" maxlength="3" placeholder="THP M (e.g. 245)">
-  <button class="removeLink" type="button" onclick="this.parentElement.remove();">Remove</button>
+      row.innerHTML = `
+        <input data-f="username" type="text" placeholder="Friend username (required)">
+        <input data-f="alliance" type="text" maxlength="4" placeholder="Alliance (e.g. ZPA2)">
+        <input data-f="server" type="text" inputmode="numeric" maxlength="3" placeholder="Server (e.g. 776)">
+        <input data-f="thpM" type="text" inputmode="numeric" maxlength="3" placeholder="THP M (e.g. 245)">
+
+        <!-- UPDATED: friend seat color -->
+        <select data-f="seatColor">
+          <option value="" selected disabled>Seat Color</option>
+          <option value="Gold">Gold</option>
+          <option value="Purple">Purple</option>
+          <option value="Blue">Blue</option>
+          <option value="White">White</option>
+        </select>
+
+        <button class="removeLink" type="button" onclick="this.parentElement.remove();">Remove</button>
       `;
       friendsList.appendChild(row);
     }
@@ -564,7 +577,13 @@
       const rows = [...friendsList.querySelectorAll(".friendRow")];
       return rows.map(r => {
         const get = (key) => (r.querySelector(`[data-f="${key}"]`)?.value || "").trim();
-        return { username: get("username"), alliance: get("alliance"), server: get("server"), thpM: get("thpM") };
+        return {
+          username: get("username"),
+          alliance: get("alliance"),
+          server: get("server"),
+          thpM: get("thpM"),
+          seatColor: get("seatColor") // UPDATED
+        };
       });
     }
 
@@ -574,6 +593,7 @@
         currentAlliance: document.getElementById("currentAlliance").value.trim(),
         currentServer: document.getElementById("currentServer").value.trim(),
         totalHeroPowerM: document.getElementById("totalHeroPowerM").value.trim(),
+        seatColorMain: (document.getElementById("seatColorMain")?.value || "").trim(), // UPDATED
         comingWithFriends: document.getElementById("comingYes").checked,
         friends: document.getElementById("comingYes").checked ? gatherFriends() : [],
         interestedAlliance: document.getElementById("interestedAlliance").value,
@@ -587,74 +607,81 @@
     const LS_KEY = "776_survey_draft_v1";
 
     // --- Silent autosave ---
-const AUTO_SAVE_KEY = "776_survey_autosave_v1";
-let autoSaveStarted = false;
-let autoSaveTimer = null;
+    const AUTO_SAVE_KEY = "776_survey_autosave_v1";
+    let autoSaveStarted = false;
+    let autoSaveTimer = null;
 
-function toast(msg, ms=1400){
-  const t = document.getElementById("toast");
-  if (!t) return;
-  t.textContent = msg;
-  t.style.display = "block";
-  clearTimeout(t._hideTimer);
-  t._hideTimer = setTimeout(() => (t.style.display = "none"), ms);
-}
+    function toast(msg, ms=1400){
+      const t = document.getElementById("toast");
+      if (!t) return;
+      t.textContent = msg;
+      t.style.display = "block";
+      clearTimeout(t._hideTimer);
+      t._hideTimer = setTimeout(() => (t.style.display = "none"), ms);
+    }
 
-function hasAnyInput_(p){
-  if (!p) return false;
-  if (p.username) return true;
-  if (p.currentAlliance) return true;
-  if (p.currentServer) return true;
-  if (p.totalHeroPowerM) return true;
-  if (p.interestedAlliance) return true;
-  if (p.interestedAllianceOther) return true;
-  if (p.comingWithFriends) return true;
-  if (Array.isArray(p.friends) && p.friends.some(f => (f.username||"").trim() || (f.alliance||"").trim() || (f.server||"").trim() || (f.thpM||"").trim())) return true;
-  return false;
-}
+    function hasAnyInput_(p){
+      if (!p) return false;
+      if (p.username) return true;
+      if (p.currentAlliance) return true;
+      if (p.currentServer) return true;
+      if (p.totalHeroPowerM) return true;
+      if (p.seatColorMain) return true; // UPDATED
+      if (p.interestedAlliance) return true;
+      if (p.interestedAllianceOther) return true;
+      if (p.comingWithFriends) return true;
+      if (Array.isArray(p.friends) && p.friends.some(f =>
+        (f.username||"").trim() ||
+        (f.alliance||"").trim() ||
+        (f.server||"").trim() ||
+        (f.thpM||"").trim() ||
+        (f.seatColor||"").trim() // UPDATED
+      )) return true;
+      return false;
+    }
 
-function startSilentAutosave(){
-  if (autoSaveStarted) return;
-  autoSaveStarted = true;
+    function startSilentAutosave(){
+      if (autoSaveStarted) return;
+      autoSaveStarted = true;
 
-  // Save on any input/change
-  const events = ["input", "change"];
-  events.forEach(evt => {
-    document.addEventListener(evt, () => {
-      // Debounce saves
-      clearTimeout(autoSaveTimer);
-      autoSaveTimer = setTimeout(() => {
-        try{
-          const payload = getPayload();
-          if (!hasAnyInput_(payload)) return;
-          localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(payload));
-          toast("Saved ✓");
-        }catch(e){
-          // ignore (some webviews can block storage)
-        }
-      }, 900);
-    }, { passive: true });
-  });
-}
+      // Save on any input/change
+      const events = ["input", "change"];
+      events.forEach(evt => {
+        document.addEventListener(evt, () => {
+          // Debounce saves
+          clearTimeout(autoSaveTimer);
+          autoSaveTimer = setTimeout(() => {
+            try{
+              const payload = getPayload();
+              if (!hasAnyInput_(payload)) return;
+              localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(payload));
+              toast("Saved ✓");
+            }catch(e){
+              // ignore (some webviews can block storage)
+            }
+          }, 900);
+        }, { passive: true });
+      });
+    }
 
-function tryAutoRestore(){
-  try{
-    const raw = localStorage.getItem(AUTO_SAVE_KEY);
-    if (!raw) return;
-    const payload = JSON.parse(raw);
-    if (!hasAnyInput_(payload)) return;
+    function tryAutoRestore(){
+      try{
+        const raw = localStorage.getItem(AUTO_SAVE_KEY);
+        if (!raw) return;
+        const payload = JSON.parse(raw);
+        if (!hasAnyInput_(payload)) return;
 
-    applyPayload(payload);
-    toast("Restored your progress ✓", 1800);
-    revealSaveBtn(); // <-- ADD THIS LINE
-  }catch(e){
-    // ignore
-  }
-}
+        applyPayload(payload);
+        toast("Restored your progress ✓", 1800);
+        revealSaveBtn(); // <-- ADD THIS LINE
+      }catch(e){
+        // ignore
+      }
+    }
 
-// Start autosave + try restore on page load
-tryAutoRestore();
-startSilentAutosave();
+    // Start autosave + try restore on page load
+    tryAutoRestore();
+    startSilentAutosave();
 
     function saveDraftDevice(){
       try{
@@ -705,6 +732,11 @@ startSilentAutosave();
       document.getElementById("currentServer").value = p.currentServer || "";
       document.getElementById("totalHeroPowerM").value = p.totalHeroPowerM || "";
 
+      // UPDATED: main seat color restore
+      if (document.getElementById("seatColorMain")){
+        document.getElementById("seatColorMain").value = p.seatColorMain || "";
+      }
+
       const yes = !!p.comingWithFriends;
       document.getElementById("comingYes").checked = yes;
       document.getElementById("comingNo").checked = !yes;
@@ -723,6 +755,8 @@ startSilentAutosave();
             row.querySelector(`[data-f="alliance"]`).value = f.alliance || "";
             row.querySelector(`[data-f="server"]`).value = f.server || "";
             row.querySelector(`[data-f="thpM"]`).value = f.thpM || "";
+            // UPDATED: friend seat color restore
+            row.querySelector(`[data-f="seatColor"]`).value = f.seatColor || "";
           });
         }
       }
@@ -733,38 +767,38 @@ startSilentAutosave();
     }
 
     async function submitFinal(){
-  showMsg("msg", "");
+      showMsg("msg", "");
 
-  const btn = document.getElementById("submitBtn");
-  const btnText = document.getElementById("submitBtnText");
+      const btn = document.getElementById("submitBtn");
+      const btnText = document.getElementById("submitBtnText");
 
-  // Prevent double taps (Android/in-game browsers love double-firing)
-  if (btn.dataset.loading === "1") return;
+      // Prevent double taps (Android/in-game browsers love double-firing)
+      if (btn.dataset.loading === "1") return;
 
-  btn.dataset.loading = "1";
-  btn.disabled = true;
-  btn.classList.add("loading");
-  if (btnText) btnText.textContent = "Submitting...";
+      btn.dataset.loading = "1";
+      btn.disabled = true;
+      btn.classList.add("loading");
+      if (btnText) btnText.textContent = "Submitting...";
 
-  try{
-    const res = await api("submitSurvey", { payload: getPayload() });
+      try{
+        const res = await api("submitSurvey", { payload: getPayload() });
 
-    document.getElementById("formScreen").style.display = "none";
-    document.getElementById("successScreen").style.display = "block";
-    document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
+        document.getElementById("formScreen").style.display = "none";
+        document.getElementById("successScreen").style.display = "block";
+        document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
 
-    closeModal();
-  }catch(err){
-    showMsg("msg", (err.name === "AbortError")
-      ? "Network timeout. Try again (Android webview can be slow)."
-      : (err.message || String(err)), false);
-  }finally{
-    btn.disabled = false;
-    btn.classList.remove("loading");
-    btn.dataset.loading = "0";
-    if (btnText) btnText.textContent = "Submit";
-  }
-}
+        closeModal();
+      }catch(err){
+        showMsg("msg", (err.name === "AbortError")
+          ? "Network timeout. Try again (Android webview can be slow)."
+          : (err.message || String(err)), false);
+      }finally{
+        btn.disabled = false;
+        btn.classList.remove("loading");
+        btn.dataset.loading = "0";
+        if (btnText) btnText.textContent = "Submit";
+      }
+    }
 
     function submitAnother(){
       resetForm();
@@ -778,6 +812,12 @@ startSilentAutosave();
       document.getElementById("currentAlliance").value = "";
       document.getElementById("currentServer").value = "";
       document.getElementById("totalHeroPowerM").value = "";
+
+      // UPDATED: clear main seat color
+      if (document.getElementById("seatColorMain")){
+        document.getElementById("seatColorMain").value = "";
+      }
+
       document.getElementById("interestedAlliance").value = "";
       document.getElementById("interestedAllianceOther").value = "";
       document.getElementById("otherAllianceWrap").style.display = "none";
@@ -793,56 +833,56 @@ startSilentAutosave();
     }
 
     function copyGroupId(){
-  const text = document.getElementById("groupBadge")?.textContent || "";
-  if (!text) return;
+      const text = document.getElementById("groupBadge")?.textContent || "";
+      if (!text) return;
 
-  // Extract just the UUID part if present
-  const id = text.replace("Group ID:", "").trim();
+      // Extract just the UUID part if present
+      const id = text.replace("Group ID:", "").trim();
 
-  // Try modern clipboard first
-  if (navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(id).then(() => {
-      toast("Copied ✓");
-    }).catch(() => fallbackCopy_(id));
-  } else {
-    fallbackCopy_(id);
-  }
-}
+      // Try modern clipboard first
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(id).then(() => {
+          toast("Copied ✓");
+        }).catch(() => fallbackCopy_(id));
+      } else {
+        fallbackCopy_(id);
+      }
+    }
 
-function fallbackCopy_(value){
-  try{
-    const ta = document.createElement("textarea");
-    ta.value = value;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed";
-    ta.style.top = "-9999px";
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    document.body.removeChild(ta);
-    toast("Copied ✓");
-  }catch(e){
-    toast("Copy failed", 1800);
-  }
-}
+    function fallbackCopy_(value){
+      try{
+        const ta = document.createElement("textarea");
+        ta.value = value;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "fixed";
+        ta.style.top = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        toast("Copied ✓");
+      }catch(e){
+        toast("Copy failed", 1800);
+      }
+    }
 
     // Reveal "Save for later" after first input
-let saveBtnShown = false;
+    let saveBtnShown = false;
 
-function revealSaveBtn(){
-  if (saveBtnShown) return;
-  const btn = document.getElementById("saveBtn");
-  if (!btn) return;
+    function revealSaveBtn(){
+      if (saveBtnShown) return;
+      const btn = document.getElementById("saveBtn");
+      if (!btn) return;
 
-  btn.style.display = "inline-flex";
-  requestAnimationFrame(() => btn.classList.add("visible"));
-  saveBtnShown = true;
-}
+      btn.style.display = "inline-flex";
+      requestAnimationFrame(() => btn.classList.add("visible"));
+      saveBtnShown = true;
+    }
 
-// Listen for first user interaction
-["input", "change"].forEach(evt => {
-  document.addEventListener(evt, revealSaveBtn, { once: true, passive: true });
-});
+    // Listen for first user interaction
+    ["input", "change"].forEach(evt => {
+      document.addEventListener(evt, revealSaveBtn, { once: true, passive: true });
+    });
   </script>
 </body>
 </html>
