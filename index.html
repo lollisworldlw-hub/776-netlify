@@ -183,7 +183,7 @@
     .tinyBtn{ width:auto; padding:10px 12px; border-radius:12px; font-weight:900; }
     .friendRow{
       display:grid;
-      grid-template-columns: 1.6fr .8fr .7fr .7fr .8fr auto; /* UPDATED: added seat color column */
+      grid-template-columns: 1.6fr .8fr .7fr .7fr .8fr auto;
       gap:10px;
       align-items:center;
       padding:10px;
@@ -282,11 +282,9 @@
       width:96px;
       height:auto;
       display:block;
-      /* soft neon glow without a box */
       filter: drop-shadow(0 10px 30px rgba(120,160,255,.45));
     }
 
-    /* Message box under title */
     .groupNote{
       margin-top:10px;
       padding:10px 12px;
@@ -298,9 +296,7 @@
     }
     .groupNote b{ font-weight:1000; }
 
-    .heroCenter{
-      justify-content:center;
-    }
+    .heroCenter{ justify-content:center; }
 
     @media (max-width:600px){
       .mobileHero{
@@ -319,16 +315,24 @@
       }
 
       .heroLogo{
-        width:175px;          /* slightly bigger */
-        margin: 0 auto 6px;   /* forces perfect centering */
+        width:175px;
+        margin: 0 auto 6px;
       }
 
       .groupNote{
         width:100%;
-        max-width:520px;      /* keeps it nice + centered */
+        max-width:520px;
         margin-left:auto;
         margin-right:auto;
       }
+    }
+
+    /* REQUIRED seat color: style the placeholder option slightly muted */
+    select:required:invalid {
+      color: var(--muted);
+    }
+    option[disabled]{
+      color: var(--muted);
     }
   </style>
 </head>
@@ -376,15 +380,15 @@
             <div class="miniLabel"></div>
           </div>
 
-          <!-- UPDATED: seat color dropdown next to THP -->
           <div>
             <label>4) Total hero power <span style="color:var(--danger)">*</span></label>
             <div class="inlineM">
               <input id="totalHeroPowerM" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 245" required>
               <div class="mBadge">M</div>
 
-              <select id="seatColorMain" aria-label="Seat Color">
-                <option value="" selected disabled>Seat Color</option>
+              <!-- REQUIRED: add required + make placeholder invalid -->
+              <select id="seatColorMain" aria-label="Seat Color" required>
+                <option value="" selected disabled>Seat Color *</option>
                 <option value="Gold">Gold</option>
                 <option value="Purple">Purple</option>
                 <option value="Blue">Blue</option>
@@ -421,7 +425,7 @@
 
           <div>
             <label>7) Which alliance are you interested in joining? <span style="color:var(--danger)">*</span></label>
-            <select id="interestedAlliance" onchange="toggleOtherAlliance()">
+            <select id="interestedAlliance" onchange="toggleOtherAlliance()" required>
               <option value="" selected disabled>Select one</option>
               <option>Any</option>
               <option>Zpa</option>
@@ -500,8 +504,8 @@
   <div id="toast" class="toast" style="display:none;"></div>
 
   <script>
-    // same endpoint you're already using
     const API_ENDPOINT = "/.netlify/functions/api";
+    const SEAT_COLORS = ["Gold","Purple","Blue","White"];
 
     function showMsg(elId, text, ok=false){
       const el = document.getElementById(elId);
@@ -509,7 +513,6 @@
       el.className = "msg " + (ok ? "ok" : "err");
     }
 
-    // fetch with timeout (helps “stuck” Android webviews)
     async function fetchWithTimeout(url, options, ms = 15000) {
       const controller = new AbortController();
       const t = setTimeout(() => controller.abort(), ms);
@@ -559,9 +562,9 @@
         <input data-f="server" type="text" inputmode="numeric" maxlength="3" placeholder="Server (e.g. 776)">
         <input data-f="thpM" type="text" inputmode="numeric" maxlength="3" placeholder="THP M (e.g. 245)">
 
-        <!-- UPDATED: friend seat color -->
-        <select data-f="seatColor">
-          <option value="" selected disabled>Seat Color</option>
+        <!-- REQUIRED -->
+        <select data-f="seatColor" required>
+          <option value="" selected disabled>Seat Color *</option>
           <option value="Gold">Gold</option>
           <option value="Purple">Purple</option>
           <option value="Blue">Blue</option>
@@ -582,7 +585,7 @@
           alliance: get("alliance"),
           server: get("server"),
           thpM: get("thpM"),
-          seatColor: get("seatColor") // UPDATED
+          seatColor: get("seatColor")
         };
       });
     }
@@ -593,7 +596,7 @@
         currentAlliance: document.getElementById("currentAlliance").value.trim(),
         currentServer: document.getElementById("currentServer").value.trim(),
         totalHeroPowerM: document.getElementById("totalHeroPowerM").value.trim(),
-        seatColorMain: (document.getElementById("seatColorMain")?.value || "").trim(), // UPDATED
+        seatColorMain: (document.getElementById("seatColorMain")?.value || "").trim(),
         comingWithFriends: document.getElementById("comingYes").checked,
         friends: document.getElementById("comingYes").checked ? gatherFriends() : [],
         interestedAlliance: document.getElementById("interestedAlliance").value,
@@ -601,12 +604,29 @@
       };
     }
 
+    // NEW: front-end required validation for seat colors (leader + friends)
+    function validateSeatColors_(){
+      const main = (document.getElementById("seatColorMain")?.value || "").trim();
+      if (!main || SEAT_COLORS.indexOf(main) === -1){
+        throw new Error("Please select a Seat Color for yourself.");
+      }
+
+      if (document.getElementById("comingYes").checked){
+        const rows = [...friendsList.querySelectorAll(".friendRow")];
+        for (let i = 0; i < rows.length; i++){
+          const v = (rows[i].querySelector(`[data-f="seatColor"]`)?.value || "").trim();
+          if (!v || SEAT_COLORS.indexOf(v) === -1){
+            throw new Error(`Friend #${i + 1}: Please select a Seat Color.`);
+          }
+        }
+      }
+    }
+
     function openModal(){ showMsg("draftMsg",""); document.getElementById("modalBackdrop").style.display="flex"; }
     function closeModal(){ document.getElementById("modalBackdrop").style.display="none"; }
 
     const LS_KEY = "776_survey_draft_v1";
 
-    // --- Silent autosave ---
     const AUTO_SAVE_KEY = "776_survey_autosave_v1";
     let autoSaveStarted = false;
     let autoSaveTimer = null;
@@ -626,7 +646,7 @@
       if (p.currentAlliance) return true;
       if (p.currentServer) return true;
       if (p.totalHeroPowerM) return true;
-      if (p.seatColorMain) return true; // UPDATED
+      if (p.seatColorMain) return true;
       if (p.interestedAlliance) return true;
       if (p.interestedAllianceOther) return true;
       if (p.comingWithFriends) return true;
@@ -635,7 +655,7 @@
         (f.alliance||"").trim() ||
         (f.server||"").trim() ||
         (f.thpM||"").trim() ||
-        (f.seatColor||"").trim() // UPDATED
+        (f.seatColor||"").trim()
       )) return true;
       return false;
     }
@@ -644,11 +664,8 @@
       if (autoSaveStarted) return;
       autoSaveStarted = true;
 
-      // Save on any input/change
-      const events = ["input", "change"];
-      events.forEach(evt => {
+      ["input", "change"].forEach(evt => {
         document.addEventListener(evt, () => {
-          // Debounce saves
           clearTimeout(autoSaveTimer);
           autoSaveTimer = setTimeout(() => {
             try{
@@ -657,7 +674,7 @@
               localStorage.setItem(AUTO_SAVE_KEY, JSON.stringify(payload));
               toast("Saved ✓");
             }catch(e){
-              // ignore (some webviews can block storage)
+              // ignore
             }
           }, 900);
         }, { passive: true });
@@ -673,13 +690,12 @@
 
         applyPayload(payload);
         toast("Restored your progress ✓", 1800);
-        revealSaveBtn(); // <-- ADD THIS LINE
+        revealSaveBtn();
       }catch(e){
         // ignore
       }
     }
 
-    // Start autosave + try restore on page load
     tryAutoRestore();
     startSilentAutosave();
 
@@ -732,7 +748,6 @@
       document.getElementById("currentServer").value = p.currentServer || "";
       document.getElementById("totalHeroPowerM").value = p.totalHeroPowerM || "";
 
-      // UPDATED: main seat color restore
       if (document.getElementById("seatColorMain")){
         document.getElementById("seatColorMain").value = p.seatColorMain || "";
       }
@@ -755,7 +770,6 @@
             row.querySelector(`[data-f="alliance"]`).value = f.alliance || "";
             row.querySelector(`[data-f="server"]`).value = f.server || "";
             row.querySelector(`[data-f="thpM"]`).value = f.thpM || "";
-            // UPDATED: friend seat color restore
             row.querySelector(`[data-f="seatColor"]`).value = f.seatColor || "";
           });
         }
@@ -772,7 +786,6 @@
       const btn = document.getElementById("submitBtn");
       const btnText = document.getElementById("submitBtnText");
 
-      // Prevent double taps (Android/in-game browsers love double-firing)
       if (btn.dataset.loading === "1") return;
 
       btn.dataset.loading = "1";
@@ -781,6 +794,9 @@
       if (btnText) btnText.textContent = "Submitting...";
 
       try{
+        // REQUIRED: validate seat colors before submit
+        validateSeatColors_();
+
         const res = await api("submitSurvey", { payload: getPayload() });
 
         document.getElementById("formScreen").style.display = "none";
@@ -813,7 +829,6 @@
       document.getElementById("currentServer").value = "";
       document.getElementById("totalHeroPowerM").value = "";
 
-      // UPDATED: clear main seat color
       if (document.getElementById("seatColorMain")){
         document.getElementById("seatColorMain").value = "";
       }
@@ -836,10 +851,8 @@
       const text = document.getElementById("groupBadge")?.textContent || "";
       if (!text) return;
 
-      // Extract just the UUID part if present
       const id = text.replace("Group ID:", "").trim();
 
-      // Try modern clipboard first
       if (navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(id).then(() => {
           toast("Copied ✓");
@@ -866,7 +879,6 @@
       }
     }
 
-    // Reveal "Save for later" after first input
     let saveBtnShown = false;
 
     function revealSaveBtn(){
@@ -879,7 +891,6 @@
       saveBtnShown = true;
     }
 
-    // Listen for first user interaction
     ["input", "change"].forEach(evt => {
       document.addEventListener(evt, revealSaveBtn, { once: true, passive: true });
     });
