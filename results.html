@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>776 Leadership Results</title>
+  <style>
+    :root{
+      --panel: rgba(10, 12, 26, .72);
+      --stroke: rgba(120, 140, 255, .22);
+      --text:#eaf0ff;
+      --muted:#aab3d6;
+      --danger:#ff4b7a;
+      --ok:#42ffb0;
+    }
+    *{box-sizing:border-box;font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;}
+    body{
+      margin:0; padding:24px;
+      color:var(--text);
+      background:
+        radial-gradient(1200px 700px at 20% 10%, rgba(55,215,255,.18), transparent 55%),
+        radial-gradient(900px 600px at 80% 20%, rgba(255,75,216,.18), transparent 60%),
+        radial-gradient(800px 600px at 55% 85%, rgba(120,90,255,.14), transparent 60%),
+        linear-gradient(180deg, #050510, #070812 35%, #050510);
+      min-height:100vh;
+    }
+    .wrap{max-width:1100px;margin:0 auto;}
+    .card{
+      border:1px solid var(--stroke);
+      background:var(--panel);
+      border-radius:18px;
+      padding:22px;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 18px 60px rgba(0,0,0,.55);
+      backdrop-filter: blur(10px);
+      position:relative;
+      overflow:hidden;
+    }
+    .logoRow{
+      display:flex;
+      justify-content:center;
+      margin-bottom:16px;
+    }
+    .logoRow a{ display:inline-block; }
+    .logoRow img{
+      width:72px;height:72px;border-radius:18px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.55);
+      object-fit:contain;
+      box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 20px rgba(55,215,255,.12);
+    }
+    h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.4px;}
+    .sub{margin:4px 0 0;color:var(--muted);font-size:13px;}
+    label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px;}
+    input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6, 7, 18, .65);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus{
+      border-color: rgba(55,215,255,.35);
+      box-shadow: 0 0 0 3px rgba(55,215,255,.12);
+    }
+    .btn{
+      border:0; cursor:pointer;
+      padding:12px 14px;border-radius:14px;
+      color:#07101a;
+      background: linear-gradient(90deg, rgba(55,215,255,.95), rgba(255,75,216,.95));
+      font-weight:900;
+      letter-spacing:.4px;
+      width:100%;
+    }
+    .ghost{
+      background: transparent;
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--text);
+      box-shadow:none;
+      font-weight:800;
+      width:auto;
+      padding:10px 14px;
+    }
+    .smallBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(6,7,18,.35);
+      color: var(--text);
+      border-radius: 14px;
+      padding: 10px 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .msg{margin-top:12px;font-size:13px;}
+    .err{color:var(--danger);}
+    .ok{color:var(--ok);}
+    .hdrRow{
+      display:flex;justify-content:space-between;align-items:center;
+      gap:12px;margin-bottom:14px;flex-wrap:wrap;
+    }
+    .btnRow{display:flex;gap:10px;flex-wrap:wrap;}
+    #resultsTable{width:100%;border-collapse:collapse;font-size:13px;}
+    #resultsTable th{
+      text-align:left;
+      padding:8px 10px;
+      border-bottom:1px solid rgba(255,255,255,.14);
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+      cursor:pointer;
+      user-select:none;
+      white-space:nowrap;
+    }
+    #resultsTable th:hover{color:var(--text);}
+    #resultsTable td{
+      padding:8px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      white-space:nowrap;
+    }
+    #resultsTable tr:hover td{background:rgba(255,255,255,.03);}
+    .filterInput{
+      width:100%;
+      padding:6px 8px;
+      border-radius:8px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.5);
+      color:var(--text);
+      font-size:12px;
+      margin-top:6px;
+    }
+    .sortArrow{font-size:10px;color:var(--muted);margin-left:4px;}
+    .loginBox{max-width:380px;margin:0 auto;}
+    .loginBox .field{margin-bottom:14px;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logoRow">
+      <a href="index.html" title="Back to survey">
+        <img src="/assets/logo.png" alt="776 logo">
+      </a>
+    </div>
+
+    <div class="card">
+      <div class="ring"></div>
+
+      <div id="loginSection">
+        <div class="loginBox">
+          <h1 style="text-align:center;">Leadership Login</h1>
+          <div class="sub" style="text-align:center;margin-bottom:20px;">For alliance leadership only. Ask an R4 for an account.</div>
+
+          <div class="field">
+            <label>Username</label>
+            <input id="loginUsername" type="text" placeholder="Leadership username" autocomplete="username">
+          </div>
+          <div class="field">
+            <label>Password</label>
+            <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+          </div>
+          <button id="loginSubmitBtn" class="btn" type="button" onclick="doLogin()">Log in</button>
+          <div class="msg" id="loginMsg"></div>
+        </div>
+      </div>
+
+      <div id="resultsSection" style="display:none;">
+        <div class="hdrRow">
+          <div>
+            <h1>776 Transfer Survey Results</h1>
+            <div class="sub" id="resultsSub"></div>
+          </div>
+          <div class="btnRow">
+            <button class="smallBtn" type="button" onclick="exportCsv()">Export CSV</button>
+            <button class="smallBtn" type="button" onclick="doLogout()">Log out</button>
+          </div>
+        </div>
+
+        <div class="msg" id="resultsMsg"></div>
+
+        <div style="overflow-x:auto; margin-top:14px;">
+          <table id="resultsTable">
+            <thead id="resultsThead"></thead>
+            <tbody id="resultsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_ENDPOINT = "/.netlify/functions/api";
+    const SESSION_KEY = "776_leadership_session_v1";
+
+    // Columns to hide entirely (internal use only)
+    const HIDDEN_COLUMNS = ["GroupID"];
+    // Columns whose value should be shown as a plain date instead of raw timestamp
+    const DATE_COLUMNS = ["Timestamp"];
+
+    let allRows = [];       // raw rows from the server, minus hidden columns
+    let visibleColumns = [];
+    let sortState = { column: null, dir: 1 };
+    let filters = {};       // { columnName: filterText }
+
+    function showMsg(elId, text, ok=false){
+      const el = document.getElementById(elId);
+      el.textContent = text;
+      el.className = "msg " + (ok ? "ok" : "err");
+    }
+
+    async function fetchWithTimeout(url, options, ms = 15000) {
+      const controller = new AbortController();
+      const t = setTimeout(() => controller.abort(), ms);
+      try {
+        return await fetch(url, { ...options, signal: controller.signal });
+      } finally {
+        clearTimeout(t);
+      }
+    }
+
+    async function api(action, data){
+      const res = await fetchWithTimeout(API_ENDPOINT, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ action, ...data })
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!json || json.ok !== true) throw new Error(json.error || "Request failed.");
+      return json;
+    }
+
+    /*********** SESSION ***********/
+    function getSession(){
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
+      catch(e){ return null; }
+    }
+    function setSession(session){
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    }
+    function clearSession(){
+      localStorage.removeItem(SESSION_KEY);
+    }
+
+    async function doLogin(){
+      showMsg("loginMsg", "");
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!username || !password) return showMsg("loginMsg", "Enter a username and password.");
+
+      const btn = document.getElementById("loginSubmitBtn");
+      btn.disabled = true;
+      try {
+        const res = await api("login", { username, password });
+        setSession({ username: res.username, displayName: res.displayName, token: res.token });
+        document.getElementById("loginPassword").value = "";
+        showResultsSection();
+      } catch (e) {
+        showMsg("loginMsg", e.message || String(e));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function doLogout(){
+      clearSession();
+      document.getElementById("resultsSection").style.display = "none";
+      document.getElementById("loginSection").style.display = "block";
+      document.getElementById("loginUsername").value = "";
+    }
+
+    /*********** RESULTS: LOAD ***********/
+    async function showResultsSection(){
+      const session = getSession();
+      if (!session) return;
+
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("resultsSection").style.display = "block";
+      document.getElementById("resultsSub").textContent = `Logged in as ${session.displayName}`;
+      showMsg("resultsMsg", "Loading…", true);
+
+      try {
+        const res = await api("getResults", { username: session.username, token: session.token });
+        loadRows(res.rows || []);
+        showMsg("resultsMsg", `${allRows.length} response row(s).`, true);
+      } catch (e) {
+        if (/session expired|not authenticated/i.test(e.message || "")) {
+          clearSession();
+          showMsg("resultsMsg", "Your session expired. Please log in again.");
+          setTimeout(doLogout, 1200);
+        } else {
+          showMsg("resultsMsg", e.message || String(e));
+        }
+      }
+    }
+
+    function loadRows(rawRows){
+      if (!rawRows.length) {
+        allRows = [];
+        visibleColumns = [];
+        renderTable();
+        return;
+      }
+      visibleColumns = Object.keys(rawRows[0]).filter(c => !HIDDEN_COLUMNS.includes(c));
+      allRows = rawRows;
+      filters = {};
+      sortState = { column: null, dir: 1 };
+      renderTable();
+    }
+
+    /*********** FORMATTING ***********/
+    function formatCell(col, value){
+      if (value === null || value === undefined || value === "") return "";
+      if (DATE_COLUMNS.includes(col)) {
+        const d = new Date(value);
+        if (!isNaN(d)) {
+          return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+        }
+      }
+      return String(value);
+    }
+
+    /*********** SORT + FILTER + RENDER ***********/
+    function getFilteredSortedRows(){
+      let rows = allRows.slice();
+
+      // Filter
+      Object.keys(filters).forEach(col => {
+        const term = (filters[col] || "").trim().toLowerCase();
+        if (!term) return;
+        rows = rows.filter(r => formatCell(col, r[col]).toLowerCase().includes(term));
+      });
+
+      // Sort
+      if (sortState.column) {
+        const col = sortState.column;
+        rows.sort((a, b) => {
+          let av = a[col], bv = b[col];
+          const an = Number(av), bn = Number(bv);
+          let cmp;
+          if (av !== "" && bv !== "" && !isNaN(an) && !isNaN(bn)) {
+            cmp = an - bn;
+          } else if (DATE_COLUMNS.includes(col)) {
+            cmp = new Date(av || 0) - new Date(bv || 0);
+          } else {
+            cmp = String(av ?? "").localeCompare(String(bv ?? ""));
+          }
+          return cmp * sortState.dir;
+        });
+      }
+
+      return rows;
+    }
+
+    function toggleSort(col){
+      if (sortState.column === col) {
+        sortState.dir = sortState.dir * -1;
+      } else {
+        sortState.column = col;
+        sortState.dir = 1;
+      }
+      renderTable();
+    }
+
+    function renderTable(){
+      const thead = document.getElementById("resultsThead");
+      const tbody = document.getElementById("resultsTbody");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+
+      if (!visibleColumns.length) return;
+
+      const trh = document.createElement("tr");
+      visibleColumns.forEach(col => {
+        const th = document.createElement("th");
+
+        const labelSpan = document.createElement("span");
+        labelSpan.textContent = col;
+        labelSpan.onclick = () => toggleSort(col);
+
+        if (sortState.column === col) {
+          const arrow = document.createElement("span");
+          arrow.className = "sortArrow";
+          arrow.textContent = sortState.dir === 1 ? "▲" : "▼";
+          labelSpan.appendChild(arrow);
+        }
+
+        const filterInput = document.createElement("input");
+        filterInput.className = "filterInput";
+        filterInput.placeholder = "Filter…";
+        filterInput.value = filters[col] || "";
+        filterInput.onclick = (e) => e.stopPropagation();
+        filterInput.oninput = (e) => {
+          filters[col] = e.target.value;
+          renderTable();
+        };
+
+        th.appendChild(labelSpan);
+        th.appendChild(filterInput);
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+
+      const rows = getFilteredSortedRows();
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        visibleColumns.forEach(col => {
+          const td = document.createElement("td");
+          td.textContent = formatCell(col, row[col]);
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+
+      showMsg("resultsMsg", `${rows.length} of ${allRows.length} response row(s) shown.`, true);
+    }
+
+    /*********** EXPORT ***********/
+    function exportCsv(){
+      const rows = getFilteredSortedRows();
+      if (!rows.length) return showMsg("resultsMsg", "Nothing to export.");
+
+      const escapeCsv = (v) => {
+        const s = String(v ?? "");
+        return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+      };
+
+      const lines = [visibleColumns.map(escapeCsv).join(",")];
+      rows.forEach(row => {
+        lines.push(visibleColumns.map(col => escapeCsv(formatCell(col, row[col]))).join(","));
+      });
+
+      const csv = lines.join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `776-transfer-results-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    /*********** INIT ***********/
+    (function init(){
+      const session = getSession();
+      if (session) showResultsSection();
+    })();
+  </script>
+</body>
+</html>
