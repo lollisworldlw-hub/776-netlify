@@ -136,6 +136,42 @@
     }
     #resultsTable tr:hover td{background:rgba(255,255,255,.03);}
     .sortArrow{font-size:10px;color:var(--muted);margin-left:4px;}
+    .tabBar{display:flex;gap:8px;margin-bottom:16px;}
+    .tabBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background: transparent;
+      color:var(--muted);
+      border-radius:12px;
+      padding:8px 16px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .tabBtn.active{
+      color:var(--text);
+      background: rgba(6,7,18,.55);
+      border-color: rgba(55,215,255,.35);
+    }
+    #usersTable{width:100%;border-collapse:collapse;font-size:13px;}
+    #usersTable th{
+      text-align:left;padding:8px 10px;
+      border-bottom:1px solid rgba(255,255,255,.14);
+      color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;
+    }
+    #usersTable td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.08);}
+    #usersTable select{padding:6px 8px;font-size:12px;}
+    .pwField{display:flex;gap:6px;}
+    .pwField input{width:120px;padding:6px 8px;font-size:12px;}
+    .pwField button{padding:6px 10px;font-size:12px;}
+    .filterChip{
+      display:inline-flex;align-items:center;gap:6px;
+      padding:6px 10px;border-radius:10px;
+      background: rgba(55,215,255,.15);
+      border:1px solid rgba(55,215,255,.35);
+      font-size:12px;
+    }
+    .filterChip button{
+      border:0;background:transparent;color:var(--text);cursor:pointer;font-weight:900;
+    }
     .loginBox{max-width:380px;margin:0 auto;}
     .loginBox .field{margin-bottom:14px;}
   </style>
@@ -175,35 +211,61 @@
         </div>
       </div>
 
-      <div class="statsBlock">
-        <h2>By seat color</h2>
-        <div class="pillRow" id="colorStats"></div>
+      <div id="adminTabBar" class="tabBar" style="display:none;">
+        <button id="tabResultsBtn" class="tabBtn active" type="button" onclick="switchTab('results')">Results</button>
+        <button id="tabUsersBtn" class="tabBtn" type="button" onclick="switchTab('users')">Manage Users</button>
       </div>
 
-      <div class="statsBlock">
-        <h2>By interested alliance</h2>
-        <div class="pillRow" id="allianceStats"></div>
+      <div id="resultsTab">
+        <div class="statsBlock">
+          <h2>By seat color</h2>
+          <div class="pillRow" id="colorStats"></div>
+        </div>
+
+        <div class="statsBlock">
+          <h2>By interested alliance</h2>
+          <div class="pillRow" id="allianceStats"></div>
+        </div>
+
+        <div class="filterBar">
+          <label for="allianceFilter">Filter by alliance:</label>
+          <select id="allianceFilter" onchange="onAllianceFilterChange()"></select>
+          <button class="iconBtn" type="button" onclick="exportCsv()" title="Export CSV" aria-label="Export CSV">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12"></path>
+              <path d="M7 10l5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+          </button>
+          <span id="usernameFilterChip" style="display:none;"></span>
+        </div>
+
+        <div class="msg" id="resultsMsg"></div>
+
+        <div style="overflow-x:auto; margin-top:10px;">
+          <table id="resultsTable">
+            <thead id="resultsThead"></thead>
+            <tbody id="resultsTbody"></tbody>
+          </table>
+        </div>
       </div>
 
-      <div class="filterBar">
-        <label for="allianceFilter">Filter by alliance:</label>
-        <select id="allianceFilter" onchange="onAllianceFilterChange()"></select>
-        <button class="iconBtn" type="button" onclick="exportCsv()" title="Export CSV" aria-label="Export CSV">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 3v12"></path>
-            <path d="M7 10l5 5 5-5"></path>
-            <path d="M5 21h14"></path>
-          </svg>
-        </button>
-      </div>
-
-      <div class="msg" id="resultsMsg"></div>
-
-      <div style="overflow-x:auto; margin-top:10px;">
-        <table id="resultsTable">
-          <thead id="resultsThead"></thead>
-          <tbody id="resultsTbody"></tbody>
-        </table>
+      <div id="usersTab" style="display:none;">
+        <div class="msg" id="usersMsg"></div>
+        <div style="overflow-x:auto; margin-top:10px;">
+          <table id="usersTable">
+            <thead>
+              <tr>
+                <th>Username</th>
+                <th>Display name</th>
+                <th>Role</th>
+                <th>Reset password</th>
+                <th>Submissions</th>
+              </tr>
+            </thead>
+            <tbody id="usersTbody"></tbody>
+          </table>
+        </div>
       </div>
     </div>
   </div>
@@ -220,6 +282,7 @@
     let visibleColumns = [];
     let sortState = { column: null, dir: 1 };
     let allianceFilter = "All";
+    let usernameFilter = null;
 
     function showMsg(elId, text, ok=false){
       const el = document.getElementById(elId);
@@ -265,7 +328,7 @@
       btn.disabled = true;
       try {
         const res = await api("login", { username, password });
-        if (res.role !== "Leader") {
+        if (res.role !== "Leader" && res.role !== "Admin") {
           throw new Error("This account isn't set up for leadership access. Contact Lola (ZPA R4) if you think this is wrong.");
         }
         setSession({ username: res.username, displayName: res.displayName, token: res.token, role: res.role });
@@ -294,6 +357,9 @@
       document.getElementById("resultsSection").style.display = "block";
       document.getElementById("logoutBtnTop").style.display = "inline-block";
       document.getElementById("resultsSub").textContent = `Logged in as ${session.displayName}`;
+      document.getElementById("adminTabBar").style.display = (session.role === "Admin") ? "flex" : "none";
+      usernameFilter = null;
+      switchTab("results");
       showMsg("resultsMsg", "Loading…", true);
 
       try {
@@ -308,6 +374,16 @@
           showMsg("resultsMsg", e.message || String(e));
         }
       }
+    }
+
+    /*********** TABS ***********/
+    function switchTab(tab){
+      const isResults = tab === "results";
+      document.getElementById("tabResultsBtn").classList.toggle("active", isResults);
+      document.getElementById("tabUsersBtn").classList.toggle("active", !isResults);
+      document.getElementById("resultsTab").style.display = isResults ? "block" : "none";
+      document.getElementById("usersTab").style.display = isResults ? "none" : "block";
+      if (!isResults) loadUsers();
     }
 
     function loadRows(rawRows){
@@ -359,6 +435,10 @@
       if (allianceFilter !== "All") {
         rows = rows.filter(r => r.InterestedAlliance === allianceFilter);
       }
+      if (usernameFilter) {
+        const term = usernameFilter.toLowerCase();
+        rows = rows.filter(r => String(r.Username || "").toLowerCase() === term);
+      }
       if (sortState.column) {
         const col = sortState.column;
         rows.sort((a, b) => {
@@ -388,7 +468,25 @@
       const rows = getFilteredRows();
       renderStats(rows);
       renderTable(rows);
+      renderUsernameFilterChip();
       showMsg("resultsMsg", `${rows.length} of ${allRows.length} response row(s) shown.`, true);
+    }
+
+    function renderUsernameFilterChip(){
+      const chip = document.getElementById("usernameFilterChip");
+      if (!usernameFilter) {
+        chip.style.display = "none";
+        chip.innerHTML = "";
+        return;
+      }
+      chip.style.display = "inline-flex";
+      chip.className = "filterChip";
+      chip.innerHTML = `Showing only: ${usernameFilter} <button onclick="clearUsernameFilter()" aria-label="Clear filter">\u2715</button>`;
+    }
+
+    function clearUsernameFilter(){
+      usernameFilter = null;
+      renderAll();
     }
 
     function renderStats(rows){
@@ -481,6 +579,119 @@
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+    }
+
+    /*********** ADMIN: MANAGE USERS ***********/
+    async function loadUsers(){
+      const session = getSession();
+      if (!session) return;
+
+      showMsg("usersMsg", "Loading…", true);
+      try {
+        const res = await api("adminListUsers", { username: session.username, token: session.token });
+        renderUsersTable(res.users || []);
+        showMsg("usersMsg", `${(res.users || []).length} account(s).`, true);
+      } catch (e) {
+        showMsg("usersMsg", e.message || String(e));
+      }
+    }
+
+    function renderUsersTable(users){
+      const tbody = document.getElementById("usersTbody");
+      tbody.innerHTML = "";
+
+      users.sort((a, b) => String(a.username).localeCompare(String(b.username)));
+
+      users.forEach(u => {
+        const tr = document.createElement("tr");
+
+        const usernameTd = document.createElement("td");
+        usernameTd.textContent = u.username;
+
+        const displayTd = document.createElement("td");
+        displayTd.textContent = u.displayName;
+
+        const roleTd = document.createElement("td");
+        if (u.role === "Admin") {
+          roleTd.textContent = "Admin";
+        } else {
+          const select = document.createElement("select");
+          ["Member", "Leader"].forEach(r => {
+            const opt = document.createElement("option");
+            opt.value = r;
+            opt.textContent = r;
+            if (r === u.role) opt.selected = true;
+            select.appendChild(opt);
+          });
+          select.onchange = () => setUserRole(u.username, select.value);
+          roleTd.appendChild(select);
+        }
+
+        const pwTd = document.createElement("td");
+        const pwWrap = document.createElement("div");
+        pwWrap.className = "pwField";
+        const pwInput = document.createElement("input");
+        pwInput.type = "text";
+        pwInput.placeholder = "New password";
+        const pwBtn = document.createElement("button");
+        pwBtn.className = "smallBtn";
+        pwBtn.type = "button";
+        pwBtn.textContent = "Reset";
+        pwBtn.onclick = () => resetUserPassword(u.username, pwInput.value, pwBtn);
+        pwWrap.appendChild(pwInput);
+        pwWrap.appendChild(pwBtn);
+        pwTd.appendChild(pwWrap);
+
+        const subTd = document.createElement("td");
+        const subBtn = document.createElement("button");
+        subBtn.className = "smallBtn";
+        subBtn.type = "button";
+        subBtn.textContent = "View";
+        subBtn.onclick = () => viewUserSubmissions(u.username);
+        subTd.appendChild(subBtn);
+
+        tr.appendChild(usernameTd);
+        tr.appendChild(displayTd);
+        tr.appendChild(roleTd);
+        tr.appendChild(pwTd);
+        tr.appendChild(subTd);
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function setUserRole(targetUsername, newRole){
+      const session = getSession();
+      if (!session) return;
+      try {
+        await api("adminSetRole", { username: session.username, token: session.token, targetUsername, newRole });
+        showMsg("usersMsg", `Updated ${targetUsername} to ${newRole}.`, true);
+      } catch (e) {
+        showMsg("usersMsg", e.message || String(e));
+        loadUsers();
+      }
+    }
+
+    async function resetUserPassword(targetUsername, newPassword, btn){
+      const session = getSession();
+      if (!session) return;
+      if (!newPassword || newPassword.length < 4) {
+        return showMsg("usersMsg", "Enter a new password (at least 4 characters) first.");
+      }
+      btn.disabled = true;
+      try {
+        await api("adminResetPassword", { username: session.username, token: session.token, targetUsername, newPassword });
+        showMsg("usersMsg", `Password reset for ${targetUsername}.`, true);
+      } catch (e) {
+        showMsg("usersMsg", e.message || String(e));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function viewUserSubmissions(targetUsername){
+      usernameFilter = targetUsername;
+      switchTab("results");
+      renderAll();
     }
 
     (function init(){
