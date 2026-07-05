@@ -49,10 +49,10 @@
       box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 0 20px rgba(55,215,255,.12);
     }
     h1{margin:0;font-size:20px;font-weight:900;letter-spacing:.4px;}
+    h2{margin:0 0 10px;font-size:13px;font-weight:900;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
     .sub{margin:4px 0 0;color:var(--muted);font-size:13px;}
     label{display:block;font-size:12px;color:var(--muted);margin:0 0 6px;}
-    input{
-      width:100%;
+    input, select{
       padding:12px 12px;
       border-radius:12px;
       border:1px solid rgba(255,255,255,.10);
@@ -60,7 +60,8 @@
       color:var(--text);
       outline:none;
     }
-    input:focus{
+    input{width:100%;}
+    input:focus, select:focus{
       border-color: rgba(55,215,255,.35);
       box-shadow: 0 0 0 3px rgba(55,215,255,.12);
     }
@@ -72,15 +73,6 @@
       font-weight:900;
       letter-spacing:.4px;
       width:100%;
-    }
-    .ghost{
-      background: transparent;
-      border:1px solid rgba(255,255,255,.14);
-      color:var(--text);
-      box-shadow:none;
-      font-weight:800;
-      width:auto;
-      padding:10px 14px;
     }
     .smallBtn{
       border:1px solid rgba(255,255,255,.14);
@@ -100,6 +92,26 @@
       gap:12px;margin-bottom:14px;flex-wrap:wrap;
     }
     .btnRow{display:flex;gap:10px;flex-wrap:wrap;}
+
+    .statsBlock{margin-bottom:18px;}
+    .pillRow{display:flex;gap:10px;flex-wrap:wrap;}
+    .pill{
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.45);
+      min-width:90px;
+    }
+    .pill .pLabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+    .pill .pValue{font-size:20px;font-weight:900;margin-top:2px;}
+
+    .filterBar{
+      display:flex;align-items:center;gap:12px;
+      margin-bottom:14px;flex-wrap:wrap;
+    }
+    .filterBar label{margin:0;white-space:nowrap;}
+    .filterBar select{min-width:180px;}
+
     #resultsTable{width:100%;border-collapse:collapse;font-size:13px;}
     #resultsTable th{
       text-align:left;
@@ -120,16 +132,6 @@
       white-space:nowrap;
     }
     #resultsTable tr:hover td{background:rgba(255,255,255,.03);}
-    .filterInput{
-      width:100%;
-      padding:6px 8px;
-      border-radius:8px;
-      border:1px solid rgba(255,255,255,.10);
-      background: rgba(6,7,18,.5);
-      color:var(--text);
-      font-size:12px;
-      margin-top:6px;
-    }
     .sortArrow{font-size:10px;color:var(--muted);margin-left:4px;}
     .loginBox{max-width:380px;margin:0 auto;}
     .loginBox .field{margin-bottom:14px;}
@@ -176,9 +178,24 @@
           </div>
         </div>
 
+        <div class="statsBlock">
+          <h2>By seat color</h2>
+          <div class="pillRow" id="colorStats"></div>
+        </div>
+
+        <div class="statsBlock">
+          <h2>By interested alliance</h2>
+          <div class="pillRow" id="allianceStats"></div>
+        </div>
+
+        <div class="filterBar">
+          <label for="allianceFilter">Filter by alliance:</label>
+          <select id="allianceFilter" onchange="onAllianceFilterChange()"></select>
+        </div>
+
         <div class="msg" id="resultsMsg"></div>
 
-        <div style="overflow-x:auto; margin-top:14px;">
+        <div style="overflow-x:auto; margin-top:10px;">
           <table id="resultsTable">
             <thead id="resultsThead"></thead>
             <tbody id="resultsTbody"></tbody>
@@ -192,15 +209,14 @@
     const API_ENDPOINT = "/.netlify/functions/api";
     const SESSION_KEY = "776_leadership_session_v1";
 
-    // Columns to hide entirely (internal use only)
     const HIDDEN_COLUMNS = ["GroupID"];
-    // Columns whose value should be shown as a plain date instead of raw timestamp
     const DATE_COLUMNS = ["Timestamp"];
+    const SEAT_COLORS = ["Gold", "Purple", "Blue", "White"];
 
-    let allRows = [];       // raw rows from the server, minus hidden columns
+    let allRows = [];
     let visibleColumns = [];
     let sortState = { column: null, dir: 1 };
-    let filters = {};       // { columnName: filterText }
+    let allianceFilter = "All";
 
     function showMsg(elId, text, ok=false){
       const el = document.getElementById(elId);
@@ -229,17 +245,12 @@
       return json;
     }
 
-    /*********** SESSION ***********/
     function getSession(){
       try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
       catch(e){ return null; }
     }
-    function setSession(session){
-      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
-    }
-    function clearSession(){
-      localStorage.removeItem(SESSION_KEY);
-    }
+    function setSession(session){ localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
+    function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
     async function doLogin(){
       showMsg("loginMsg", "");
@@ -268,7 +279,6 @@
       document.getElementById("loginUsername").value = "";
     }
 
-    /*********** RESULTS: LOAD ***********/
     async function showResultsSection(){
       const session = getSession();
       if (!session) return;
@@ -281,7 +291,6 @@
       try {
         const res = await api("getResults", { username: session.username, token: session.token });
         loadRows(res.rows || []);
-        showMsg("resultsMsg", `${allRows.length} response row(s).`, true);
       } catch (e) {
         if (/session expired|not authenticated/i.test(e.message || "")) {
           clearSession();
@@ -294,43 +303,54 @@
     }
 
     function loadRows(rawRows){
-      if (!rawRows.length) {
-        allRows = [];
-        visibleColumns = [];
-        renderTable();
-        return;
-      }
-      visibleColumns = Object.keys(rawRows[0]).filter(c => !HIDDEN_COLUMNS.includes(c));
       allRows = rawRows;
-      filters = {};
+      visibleColumns = rawRows.length ? Object.keys(rawRows[0]).filter(c => !HIDDEN_COLUMNS.includes(c)) : [];
       sortState = { column: null, dir: 1 };
-      renderTable();
+      allianceFilter = "All";
+      populateAllianceFilter();
+      renderAll();
     }
 
-    /*********** FORMATTING ***********/
     function formatCell(col, value){
       if (value === null || value === undefined || value === "") return "";
       if (DATE_COLUMNS.includes(col)) {
         const d = new Date(value);
-        if (!isNaN(d)) {
-          return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
-        }
+        if (!isNaN(d)) return d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
       }
       return String(value);
     }
 
-    /*********** SORT + FILTER + RENDER ***********/
-    function getFilteredSortedRows(){
-      let rows = allRows.slice();
+    function rowSeatColor(row){
+      return row.Role === "Leader" ? row.LeaderSeatColor : row.FriendSeatColor;
+    }
 
-      // Filter
-      Object.keys(filters).forEach(col => {
-        const term = (filters[col] || "").trim().toLowerCase();
-        if (!term) return;
-        rows = rows.filter(r => formatCell(col, r[col]).toLowerCase().includes(term));
+    function populateAllianceFilter(){
+      const select = document.getElementById("allianceFilter");
+      const unique = Array.from(new Set(allRows.map(r => r.InterestedAlliance).filter(Boolean))).sort();
+      select.innerHTML = "";
+      const allOpt = document.createElement("option");
+      allOpt.value = "All";
+      allOpt.textContent = "All alliances";
+      select.appendChild(allOpt);
+      unique.forEach(a => {
+        const opt = document.createElement("option");
+        opt.value = a;
+        opt.textContent = a;
+        select.appendChild(opt);
       });
+      select.value = "All";
+    }
 
-      // Sort
+    function onAllianceFilterChange(){
+      allianceFilter = document.getElementById("allianceFilter").value;
+      renderAll();
+    }
+
+    function getFilteredRows(){
+      let rows = allRows.slice();
+      if (allianceFilter !== "All") {
+        rows = rows.filter(r => r.InterestedAlliance === allianceFilter);
+      }
       if (sortState.column) {
         const col = sortState.column;
         rows.sort((a, b) => {
@@ -347,60 +367,77 @@
           return cmp * sortState.dir;
         });
       }
-
       return rows;
     }
 
     function toggleSort(col){
-      if (sortState.column === col) {
-        sortState.dir = sortState.dir * -1;
-      } else {
-        sortState.column = col;
-        sortState.dir = 1;
-      }
-      renderTable();
+      if (sortState.column === col) sortState.dir *= -1;
+      else { sortState.column = col; sortState.dir = 1; }
+      renderAll();
     }
 
-    function renderTable(){
+    function renderAll(){
+      const rows = getFilteredRows();
+      renderStats(rows);
+      renderTable(rows);
+      showMsg("resultsMsg", `${rows.length} of ${allRows.length} response row(s) shown.`, true);
+    }
+
+    function renderStats(rows){
+      const colorCounts = {};
+      SEAT_COLORS.forEach(c => colorCounts[c] = 0);
+      rows.forEach(r => {
+        const c = rowSeatColor(r);
+        if (c && colorCounts.hasOwnProperty(c)) colorCounts[c]++;
+      });
+
+      const colorEl = document.getElementById("colorStats");
+      colorEl.innerHTML = "";
+      SEAT_COLORS.forEach(c => {
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.innerHTML = `<div class="pLabel">${c}</div><div class="pValue">${colorCounts[c]}</div>`;
+        colorEl.appendChild(pill);
+      });
+
+      const allianceCounts = {};
+      rows.forEach(r => {
+        const a = r.InterestedAlliance || "—";
+        allianceCounts[a] = (allianceCounts[a] || 0) + 1;
+      });
+
+      const allianceEl = document.getElementById("allianceStats");
+      allianceEl.innerHTML = "";
+      Object.keys(allianceCounts).sort().forEach(a => {
+        const pill = document.createElement("div");
+        pill.className = "pill";
+        pill.innerHTML = `<div class="pLabel">${a}</div><div class="pValue">${allianceCounts[a]}</div>`;
+        allianceEl.appendChild(pill);
+      });
+    }
+
+    function renderTable(rows){
       const thead = document.getElementById("resultsThead");
       const tbody = document.getElementById("resultsTbody");
       thead.innerHTML = "";
       tbody.innerHTML = "";
-
       if (!visibleColumns.length) return;
 
       const trh = document.createElement("tr");
       visibleColumns.forEach(col => {
         const th = document.createElement("th");
-
-        const labelSpan = document.createElement("span");
-        labelSpan.textContent = col;
-        labelSpan.onclick = () => toggleSort(col);
-
+        th.onclick = () => toggleSort(col);
+        th.textContent = col;
         if (sortState.column === col) {
           const arrow = document.createElement("span");
           arrow.className = "sortArrow";
-          arrow.textContent = sortState.dir === 1 ? "▲" : "▼";
-          labelSpan.appendChild(arrow);
+          arrow.textContent = sortState.dir === 1 ? "\u25B2" : "\u25BC";
+          th.appendChild(arrow);
         }
-
-        const filterInput = document.createElement("input");
-        filterInput.className = "filterInput";
-        filterInput.placeholder = "Filter…";
-        filterInput.value = filters[col] || "";
-        filterInput.onclick = (e) => e.stopPropagation();
-        filterInput.oninput = (e) => {
-          filters[col] = e.target.value;
-          renderTable();
-        };
-
-        th.appendChild(labelSpan);
-        th.appendChild(filterInput);
         trh.appendChild(th);
       });
       thead.appendChild(trh);
 
-      const rows = getFilteredSortedRows();
       rows.forEach(row => {
         const tr = document.createElement("tr");
         visibleColumns.forEach(col => {
@@ -410,13 +447,10 @@
         });
         tbody.appendChild(tr);
       });
-
-      showMsg("resultsMsg", `${rows.length} of ${allRows.length} response row(s) shown.`, true);
     }
 
-    /*********** EXPORT ***********/
     function exportCsv(){
-      const rows = getFilteredSortedRows();
+      const rows = getFilteredRows();
       if (!rows.length) return showMsg("resultsMsg", "Nothing to export.");
 
       const escapeCsv = (v) => {
@@ -441,7 +475,6 @@
       URL.revokeObjectURL(url);
     }
 
-    /*********** INIT ***********/
     (function init(){
       const session = getSession();
       if (session) showResultsSection();
