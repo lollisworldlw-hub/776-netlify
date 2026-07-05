@@ -48,6 +48,23 @@
     }
     .hdr{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:10px;}
     #headerAuthButtons{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
+    .iconBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(6,7,18,.45);
+      color: var(--text);
+      border-radius: 10px;
+      width:38px; height:38px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+    .iconBtn:hover{background: rgba(6,7,18,.7); border-color: rgba(255,255,255,.25);}
+    .iconBtn svg{width:18px;height:18px;}
+    .logoutCorner{
+      position:absolute;
+      top:20px; right:20px;
+      z-index:5;
+    }
     .hdrLeft{display:flex; gap:16px; align-items:center;}
     .logoWrap{
       width:92px;height:92px;border-radius:22px;
@@ -407,8 +424,12 @@
           <a id="leadershipBtn" class="smallBtn" href="results.html" style="text-decoration:none;display:none;text-align:center;">
             Leadership Results
           </a>
-          <button id="logoutBtnTop" class="smallBtn" type="button" onclick="doMemberLogout()">
-            Log out (<span id="loggedInUserLabel"></span>)
+          <button id="logoutBtnTop" class="iconBtn logoutCorner" type="button" onclick="doMemberLogout()" title="Log out" aria-label="Log out" style="display:none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <path d="M16 17l5-5-5-5"></path>
+              <path d="M21 12H9"></path>
+            </svg>
           </button>
         </div>
       </div>
@@ -454,6 +475,9 @@
         <div class="grid">
           <div class="full" id="loggedInAsRow" style="margin-bottom:4px;">
             <div class="hint">Submitting as <b id="formUsernameLabel"></b></div>
+            <div class="hint" id="editingBanner" style="display:none;">
+              Editing your existing submission. <a href="#" onclick="startNewSubmission(); return false;">Start a new one instead</a>
+            </div>
           </div>
 
           <div>
@@ -568,23 +592,14 @@
       <div class="modalHdr">
         <div>
           <div style="font-weight:1000; font-size:16px;">Save for later</div>
-          <div class="hint">No login needed. Device save works only on this phone/browser. Resume code works anywhere.</div>
+          <div class="hint">Saves to your account. Log in on any device to pick up where you left off.</div>
         </div>
         <button class="xBtn" onclick="closeModal()">×</button>
       </div>
 
       <div class="modalGrid">
-        <button class="btn ghost" type="button" onclick="saveDraftDevice()">Save on this device</button>
-        <button class="btn ghost" type="button" onclick="loadDraftDevice()">Load from this device</button>
-        <button class="btn" type="button" onclick="getResumeCode()">Get Resume Code</button>
-
-        <div style="grid-column:1/-1;">
-          <label>Load with Resume Code</label>
-          <div class="btnRow">
-            <input id="resumeCode" type="text" placeholder="Example: 776-AB12CD">
-            <button class="btn ghost" type="button" onclick="loadByResumeCode()">Load</button>
-          </div>
-        </div>
+        <button class="btn" type="button" onclick="saveDraftToAccount()">Save draft</button>
+        <button class="btn ghost" type="button" onclick="loadDraftFromAccount()">Load my saved draft</button>
 
         <div style="grid-column:1/-1;" class="msg" id="draftMsg"></div>
       </div>
@@ -650,6 +665,38 @@
     function setSession(session){ localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
     function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
+    function updateEditingBanner(){
+      document.getElementById("editingBanner").style.display = editingGroupId ? "block" : "none";
+    }
+
+    function startNewSubmission(){
+      editingGroupId = null;
+      updateEditingBanner();
+      resetForm();
+      document.getElementById("formScreen").style.display = "block";
+      document.getElementById("successScreen").style.display = "none";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    async function routeAfterLogin(){
+      const session = getSession();
+      if (!session) return;
+      try {
+        const res = await api("getMySubmissions", { username: session.username, token: session.token });
+        const subs = res.submissions || [];
+        if (subs.length > 0) {
+          await loadSubmissionForEdit(subs[0].groupId);
+        } else {
+          editingGroupId = null;
+          updateEditingBanner();
+        }
+      } catch (e) {
+        // If this fails for any reason, just fall back to a blank form.
+        editingGroupId = null;
+        updateEditingBanner();
+      }
+    }
+
     function switchAuthTab(tab){
       const isLogin = tab === "login";
       document.getElementById("tabLoginBtn").classList.toggle("active", isLogin);
@@ -703,8 +750,10 @@
     function doMemberLogout(){
       clearSession();
       editingGroupId = null;
+      updateEditingBanner();
       document.getElementById("surveyApp").style.display = "none";
       document.getElementById("headerAuthButtons").style.display = "none";
+      document.getElementById("logoutBtnTop").style.display = "none";
       document.getElementById("authScreen").style.display = "block";
       document.getElementById("loginUsername").value = "";
     }
@@ -716,9 +765,10 @@
       document.getElementById("authScreen").style.display = "none";
       document.getElementById("surveyApp").style.display = "block";
       document.getElementById("headerAuthButtons").style.display = "flex";
-      document.getElementById("loggedInUserLabel").textContent = session.displayName;
+      document.getElementById("logoutBtnTop").style.display = "flex";
       document.getElementById("formUsernameLabel").textContent = session.displayName;
       document.getElementById("leadershipBtn").style.display = (session.role === "Leader") ? "inline-block" : "none";
+      routeAfterLogin();
     }
 
     (function initAuth(){
@@ -773,6 +823,7 @@
         const res = await api("loadSubmission", { username: session.username, token: session.token, groupId });
         applyPayload(res.payload);
         editingGroupId = groupId;
+        updateEditingBanner();
         closeMySubmissionsModal();
         document.getElementById("formScreen").style.display = "block";
         document.getElementById("successScreen").style.display = "none";
@@ -872,8 +923,6 @@
     function openModal(){ showMsg("draftMsg",""); document.getElementById("modalBackdrop").style.display="flex"; }
     function closeModal(){ document.getElementById("modalBackdrop").style.display="none"; }
 
-    const LS_KEY = "776_survey_draft_v1";
-
     const AUTO_SAVE_KEY = "776_survey_autosave_v1";
     let autoSaveStarted = false;
     let autoSaveTimer = null;
@@ -946,44 +995,27 @@
     tryAutoRestore();
     startSilentAutosave();
 
-    function saveDraftDevice(){
-      try{
-        localStorage.setItem(LS_KEY, JSON.stringify(getPayload()));
-        showMsg("draftMsg", "Saved on this device ✅", true);
-      }catch(e){
-        showMsg("draftMsg", "Could not save on device: " + (e.message || e), false);
-      }
-    }
-
-    function loadDraftDevice(){
-      try{
-        const raw = localStorage.getItem(LS_KEY);
-        if(!raw) return showMsg("draftMsg", "No device draft found.", false);
-        applyPayload(JSON.parse(raw));
-        showMsg("draftMsg", "Loaded from this device ✅", true);
-      }catch(e){
-        showMsg("draftMsg", "Could not load device draft: " + (e.message || e), false);
-      }
-    }
-
-    async function getResumeCode(){
+    async function saveDraftToAccount(){
       showMsg("draftMsg", "");
+      const session = getSession();
+      if (!session) return showMsg("draftMsg", "Please log in first.");
       try{
-        const res = await api("saveDraft", { payload: getPayload() });
-        showMsg("draftMsg", `Resume Code: ${res.code} (valid until ${res.expiresAt}) ✅`, true);
-        document.getElementById("resumeCode").value = res.code;
+        await api("saveDraft", { username: session.username, token: session.token, payload: getPayload() });
+        showMsg("draftMsg", "Draft saved to your account ✅", true);
       }catch(err){
         showMsg("draftMsg", err.message || String(err), false);
       }
     }
 
-    async function loadByResumeCode(){
+    async function loadDraftFromAccount(){
       showMsg("draftMsg", "");
-      const code = document.getElementById("resumeCode").value.trim();
+      const session = getSession();
+      if (!session) return showMsg("draftMsg", "Please log in first.");
       try{
-        const res = await api("loadDraft", { code });
+        const res = await api("loadDraft", { username: session.username, token: session.token });
+        if (!res.payload) return showMsg("draftMsg", "No saved draft found.", false);
         applyPayload(res.payload);
-        showMsg("draftMsg", "Loaded from Resume Code ✅", true);
+        showMsg("draftMsg", "Loaded your saved draft ✅", true);
       }catch(err){
         showMsg("draftMsg", err.message || String(err), false);
       }
@@ -1057,6 +1089,7 @@
         document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
 
         editingGroupId = null;
+        updateEditingBanner();
         closeModal();
       }catch(err){
         showMsg("msg", (err.name === "AbortError")
@@ -1073,6 +1106,7 @@
     function submitAnother(){
       resetForm();
       editingGroupId = null;
+      updateEditingBanner();
       document.getElementById("successScreen").style.display = "none";
       document.getElementById("formScreen").style.display = "block";
       window.scrollTo({top:0, behavior:"smooth"});
