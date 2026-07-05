@@ -282,7 +282,7 @@
     const API_ENDPOINT = "/.netlify/functions/api";
     const SESSION_KEY = "776_survey_session_v1";
 
-    const HIDDEN_COLUMNS = ["GroupID"];
+    const HIDDEN_COLUMNS = ["EntryID"];
     const DATE_COLUMNS = ["Timestamp"];
     const SEAT_COLORS = ["Gold", "Purple", "Blue", "White"];
 
@@ -432,7 +432,7 @@
     }
 
     function rowSeatColor(row){
-      return row.Role === "Leader" ? row.LeaderSeatColor : row.FriendSeatColor;
+      return row.SeatColor;
     }
 
     function populateAllianceFilter(){

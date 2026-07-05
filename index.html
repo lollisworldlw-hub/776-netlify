@@ -409,7 +409,7 @@
             <div class="heroSub"></div>
 
             <div class="groupNote">
-              ✅ Only <b>one person per group</b> should submit this form.
+              ✅ Everyone submits their own entry. Starting a group gives you a code to share with friends.
             </div>
           </div>
         </div>
@@ -499,7 +499,7 @@
               <div class="mBadge">M</div>
 
               <!-- REQUIRED: add required + make placeholder invalid -->
-              <select id="seatColorMain" aria-label="Seat Color" required>
+              <select id="seatColor" aria-label="Seat Color" required>
                 <option value="" selected disabled>Seat Color *</option>
                 <option value="Gold">Gold</option>
                 <option value="Purple">Purple</option>
@@ -511,32 +511,27 @@
           </div>
 
           <div class="full">
-            <label>4) Are you looking to come with friends? <span style="color:var(--danger)">*</span></label>
+            <label>4) Group <span style="color:var(--danger)">*</span></label>
             <div class="radioPills">
               <label class="pill">
-                <input type="radio" name="coming" id="comingNo" value="No" checked>
-                <span>No</span>
+                <input type="radio" name="groupMode" id="groupNew" value="new" checked>
+                <span>Start a new group</span>
               </label>
               <label class="pill">
-                <input type="radio" name="coming" id="comingYes" value="Yes">
-                <span>Yes</span>
+                <input type="radio" name="groupMode" id="groupJoin" value="join">
+                <span>Join with a code</span>
               </label>
             </div>
-          </div>
-
-          <div class="full friendsBox" id="friendsBox" style="display:none;">
-            <div class="friendsTop">
-              <div>
-                <div style="font-weight:1000;">5) Friends (only if Yes)</div>
-                <div class="hint">Add all your friends below. *Use last transfer seat color if not assigned yet.</div>
-              </div>
-              <button class="btn ghost tinyBtn" type="button" onclick="addFriendRow()">+ Add friend</button>
+            <div id="groupCodeWrap" style="display:none;margin-top:10px;">
+              <label>Group code</label>
+              <input id="groupCode" type="text" placeholder="e.g. 776-AB12CD">
+              <div class="miniLabel">Ask whoever started your group for their code.</div>
             </div>
-            <div id="friendsList"></div>
+            <div class="hint" style="margin-top:8px;">Starting a group gives you a code to share with friends so their entries link with yours.</div>
           </div>
 
           <div>
-            <label>6) Which alliance are you interested in joining? <span style="color:var(--danger)">*</span></label>
+            <label>5) Which alliance are you interested in joining? <span style="color:var(--danger)">*</span></label>
             <select id="interestedAlliance" onchange="toggleOtherAlliance()" required>
               <option value="" selected disabled>Select one</option>
               <option>Any</option>
@@ -570,10 +565,10 @@
       <div id="successScreen" style="display:none;">
         <div style="margin-top:10px;">
           <div class="successTitle" id="successTitle">Submitted ✅</div>
-          <div class="hint">Thanks! Your response is saved. If you came with friends, they’re linked in the same Group ID.</div>
+          <div class="hint" id="successHint">Thanks! Your response is saved. Share this code with your friends so they can link their entries to yours.</div>
           <div class="badge" id="groupBadge"></div>
           <button class="btn ghost" type="button" onclick="copyGroupId()" style="margin-top:10px;">
-            📋 Copy Group ID
+            📋 Copy Group Code
           </button>
           <div class="btnRow" style="margin-top:16px;">
             <button class="btn" type="button" onclick="submitAnother()">Submit another</button>
@@ -656,7 +651,7 @@
 
     /*********** ACCOUNT / SESSION ***********/
     const SESSION_KEY = "776_survey_session_v1";
-    let editingGroupId = null;
+    let editingEntryId = null;
 
     function getSession(){
       try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
@@ -666,11 +661,11 @@
     function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
     function updateEditingBanner(){
-      document.getElementById("editingBanner").style.display = editingGroupId ? "block" : "none";
+      document.getElementById("editingBanner").style.display = editingEntryId ? "block" : "none";
     }
 
     function startNewSubmission(){
-      editingGroupId = null;
+      editingEntryId = null;
       updateEditingBanner();
       resetForm();
       document.getElementById("formScreen").style.display = "block";
@@ -685,14 +680,14 @@
         const res = await api("getMySubmissions", { username: session.username, token: session.token });
         const subs = res.submissions || [];
         if (subs.length > 0) {
-          await loadSubmissionForEdit(subs[0].groupId);
+          await loadSubmissionForEdit(subs[0].entryId);
         } else {
-          editingGroupId = null;
+          editingEntryId = null;
           updateEditingBanner();
         }
       } catch (e) {
         // If this fails for any reason, just fall back to a blank form.
-        editingGroupId = null;
+        editingEntryId = null;
         updateEditingBanner();
       }
     }
@@ -749,7 +744,7 @@
 
     function doMemberLogout(){
       clearSession();
-      editingGroupId = null;
+      editingEntryId = null;
       updateEditingBanner();
       document.getElementById("surveyApp").style.display = "none";
       document.getElementById("headerAuthButtons").style.display = "none";
@@ -800,10 +795,10 @@
           const row = document.createElement("div");
           row.className = "submissionRow";
           row.innerHTML = `
-            <div class="meta">${dateStr} — ${s.currentAlliance || ""} → interested in ${s.interestedAlliance || ""}</div>
+            <div class="meta">${dateStr} — ${s.currentAlliance || ""} → interested in ${s.interestedAlliance || ""} — Group: ${s.groupId || ""}</div>
             <button class="btn ghost tinyBtn" type="button">Edit</button>
           `;
-          row.querySelector("button").onclick = () => loadSubmissionForEdit(s.groupId);
+          row.querySelector("button").onclick = () => loadSubmissionForEdit(s.entryId);
           list.appendChild(row);
         });
       } catch (e) {
@@ -815,14 +810,14 @@
       document.getElementById("mySubmissionsBackdrop").style.display = "none";
     }
 
-    async function loadSubmissionForEdit(groupId){
+    async function loadSubmissionForEdit(entryId){
       const session = getSession();
       if (!session) return;
 
       try {
-        const res = await api("loadSubmission", { username: session.username, token: session.token, groupId });
+        const res = await api("loadSubmission", { username: session.username, token: session.token, entryId });
         applyPayload(res.payload);
-        editingGroupId = groupId;
+        editingEntryId = entryId;
         updateEditingBanner();
         closeMySubmissionsModal();
         document.getElementById("formScreen").style.display = "block";
@@ -834,89 +829,40 @@
       }
     }
 
-    const friendsBox = document.getElementById("friendsBox");
-    const friendsList = document.getElementById("friendsList");
-
     function toggleOtherAlliance(){
       const val = document.getElementById("interestedAlliance").value;
       document.getElementById("otherAllianceWrap").style.display = (val === "Other") ? "block" : "none";
     }
 
-    function syncFriendsVisibility(){
-      const yes = document.getElementById("comingYes").checked;
-      friendsBox.style.display = yes ? "block" : "none";
-      if (yes && friendsList.children.length === 0) addFriendRow();
-      if (!yes) friendsList.innerHTML = "";
+    function syncGroupVisibility(){
+      const joining = document.getElementById("groupJoin").checked;
+      document.getElementById("groupCodeWrap").style.display = joining ? "block" : "none";
     }
-    document.getElementById("comingYes").addEventListener("change", syncFriendsVisibility);
-    document.getElementById("comingNo").addEventListener("change", syncFriendsVisibility);
-    syncFriendsVisibility();
-
-    function addFriendRow(){
-      const row = document.createElement("div");
-      row.className = "friendRow";
-      row.innerHTML = `
-        <input data-f="username" type="text" placeholder="Friend username (required)">
-        <input data-f="alliance" type="text" maxlength="4" placeholder="Alliance (e.g. ZPA2)">
-        <input data-f="server" type="text" inputmode="numeric" maxlength="3" placeholder="Server (e.g. 776)">
-        <input data-f="thpM" type="text" inputmode="numeric" maxlength="3" placeholder="THP M (e.g. 245)">
-
-        <!-- REQUIRED -->
-        <select data-f="seatColor" required>
-          <option value="" selected disabled>Seat Color *</option>
-          <option value="Gold">Gold</option>
-          <option value="Purple">Purple</option>
-          <option value="Blue">Blue</option>
-          <option value="White">White</option>
-        </select>
-
-        <button class="removeLink" type="button" onclick="this.parentElement.remove();">Remove</button>
-      `;
-      friendsList.appendChild(row);
-    }
-
-    function gatherFriends(){
-      const rows = [...friendsList.querySelectorAll(".friendRow")];
-      return rows.map(r => {
-        const get = (key) => (r.querySelector(`[data-f="${key}"]`)?.value || "").trim();
-        return {
-          username: get("username"),
-          alliance: get("alliance"),
-          server: get("server"),
-          thpM: get("thpM"),
-          seatColor: get("seatColor")
-        };
-      });
-    }
+    document.getElementById("groupNew").addEventListener("change", syncGroupVisibility);
+    document.getElementById("groupJoin").addEventListener("change", syncGroupVisibility);
+    syncGroupVisibility();
 
     function getPayload(){
       return {
         currentAlliance: document.getElementById("currentAlliance").value.trim(),
         currentServer: document.getElementById("currentServer").value.trim(),
         totalHeroPowerM: document.getElementById("totalHeroPowerM").value.trim(),
-        seatColorMain: (document.getElementById("seatColorMain")?.value || "").trim(),
-        comingWithFriends: document.getElementById("comingYes").checked,
-        friends: document.getElementById("comingYes").checked ? gatherFriends() : [],
+        seatColor: (document.getElementById("seatColor")?.value || "").trim(),
+        groupMode: document.getElementById("groupJoin").checked ? "join" : "new",
+        groupCode: document.getElementById("groupCode").value.trim(),
         interestedAlliance: document.getElementById("interestedAlliance").value,
         interestedAllianceOther: document.getElementById("interestedAllianceOther").value.trim()
       };
     }
 
-    // NEW: front-end required validation for seat colors (leader + friends)
+    // Front-end required validation before submit
     function validateSeatColors_(){
-      const main = (document.getElementById("seatColorMain")?.value || "").trim();
-      if (!main || SEAT_COLORS.indexOf(main) === -1){
+      const color = (document.getElementById("seatColor")?.value || "").trim();
+      if (!color || SEAT_COLORS.indexOf(color) === -1){
         throw new Error("Please select a Seat Color for yourself.");
       }
-
-      if (document.getElementById("comingYes").checked){
-        const rows = [...friendsList.querySelectorAll(".friendRow")];
-        for (let i = 0; i < rows.length; i++){
-          const v = (rows[i].querySelector(`[data-f="seatColor"]`)?.value || "").trim();
-          if (!v || SEAT_COLORS.indexOf(v) === -1){
-            throw new Error(`Friend #${i + 1}: Please select a Seat Color.`);
-          }
-        }
+      if (document.getElementById("groupJoin").checked && !document.getElementById("groupCode").value.trim()){
+        throw new Error("Enter the group code your friend shared with you, or switch to 'Start a new group.'");
       }
     }
 
@@ -938,21 +884,13 @@
 
     function hasAnyInput_(p){
       if (!p) return false;
-      if (p.username) return true;
       if (p.currentAlliance) return true;
       if (p.currentServer) return true;
       if (p.totalHeroPowerM) return true;
-      if (p.seatColorMain) return true;
+      if (p.seatColor) return true;
+      if (p.groupCode) return true;
       if (p.interestedAlliance) return true;
       if (p.interestedAllianceOther) return true;
-      if (p.comingWithFriends) return true;
-      if (Array.isArray(p.friends) && p.friends.some(f =>
-        (f.username||"").trim() ||
-        (f.alliance||"").trim() ||
-        (f.server||"").trim() ||
-        (f.thpM||"").trim() ||
-        (f.seatColor||"").trim()
-      )) return true;
       return false;
     }
 
@@ -1026,32 +964,15 @@
       document.getElementById("currentServer").value = p.currentServer || "";
       document.getElementById("totalHeroPowerM").value = p.totalHeroPowerM || "";
 
-      if (document.getElementById("seatColorMain")){
-        document.getElementById("seatColorMain").value = p.seatColorMain || "";
+      if (document.getElementById("seatColor")){
+        document.getElementById("seatColor").value = p.seatColor || "";
       }
 
-      const yes = !!p.comingWithFriends;
-      document.getElementById("comingYes").checked = yes;
-      document.getElementById("comingNo").checked = !yes;
-
-      friendsList.innerHTML = "";
-      syncFriendsVisibility();
-
-      if (yes) {
-        const arr = Array.isArray(p.friends) ? p.friends : [];
-        if (arr.length === 0) addFriendRow();
-        else {
-          arr.forEach(() => addFriendRow());
-          [...friendsList.querySelectorAll(".friendRow")].forEach((row, i) => {
-            const f = arr[i] || {};
-            row.querySelector(`[data-f="username"]`).value = f.username || "";
-            row.querySelector(`[data-f="alliance"]`).value = f.alliance || "";
-            row.querySelector(`[data-f="server"]`).value = f.server || "";
-            row.querySelector(`[data-f="thpM"]`).value = f.thpM || "";
-            row.querySelector(`[data-f="seatColor"]`).value = f.seatColor || "";
-          });
-        }
-      }
+      const joining = p.groupMode === "join" || (!!p.groupCode && p.groupMode !== "new");
+      document.getElementById("groupJoin").checked = joining;
+      document.getElementById("groupNew").checked = !joining;
+      document.getElementById("groupCode").value = p.groupCode || "";
+      syncGroupVisibility();
 
       document.getElementById("interestedAlliance").value = p.interestedAlliance || "";
       document.getElementById("interestedAllianceOther").value = p.interestedAllianceOther || "";
@@ -1072,23 +993,23 @@
       btn.dataset.loading = "1";
       btn.disabled = true;
       btn.classList.add("loading");
-      if (btnText) btnText.textContent = editingGroupId ? "Updating..." : "Submitting...";
+      if (btnText) btnText.textContent = editingEntryId ? "Updating..." : "Submitting...";
 
       try{
         // REQUIRED: validate seat colors before submit
         validateSeatColors_();
 
         const authFields = { username: session.username, token: session.token };
-        const res = editingGroupId
-          ? await api("updateSurvey", { ...authFields, groupId: editingGroupId, payload: getPayload() })
+        const res = editingEntryId
+          ? await api("updateSurvey", { ...authFields, entryId: editingEntryId, payload: getPayload() })
           : await api("submitSurvey", { ...authFields, payload: getPayload() });
 
-        document.getElementById("successTitle").textContent = editingGroupId ? "Updated ✅" : "Submitted ✅";
+        document.getElementById("successTitle").textContent = editingEntryId ? "Updated ✅" : "Submitted ✅";
         document.getElementById("formScreen").style.display = "none";
         document.getElementById("successScreen").style.display = "block";
-        document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
+        document.getElementById("groupBadge").textContent = "Group Code: " + res.groupId;
 
-        editingGroupId = null;
+        editingEntryId = null;
         updateEditingBanner();
         closeModal();
       }catch(err){
@@ -1105,7 +1026,7 @@
 
     function submitAnother(){
       resetForm();
-      editingGroupId = null;
+      editingEntryId = null;
       updateEditingBanner();
       document.getElementById("successScreen").style.display = "none";
       document.getElementById("formScreen").style.display = "block";
@@ -1117,19 +1038,18 @@
       document.getElementById("currentServer").value = "";
       document.getElementById("totalHeroPowerM").value = "";
 
-      if (document.getElementById("seatColorMain")){
-        document.getElementById("seatColorMain").value = "";
+      if (document.getElementById("seatColor")){
+        document.getElementById("seatColor").value = "";
       }
 
       document.getElementById("interestedAlliance").value = "";
       document.getElementById("interestedAllianceOther").value = "";
       document.getElementById("otherAllianceWrap").style.display = "none";
 
-      document.getElementById("comingNo").checked = true;
-      document.getElementById("comingYes").checked = false;
-
-      friendsList.innerHTML = "";
-      syncFriendsVisibility();
+      document.getElementById("groupNew").checked = true;
+      document.getElementById("groupJoin").checked = false;
+      document.getElementById("groupCode").value = "";
+      syncGroupVisibility();
 
       showMsg("msg", "");
       showMsg("draftMsg", "");
@@ -1139,7 +1059,7 @@
       const text = document.getElementById("groupBadge")?.textContent || "";
       if (!text) return;
 
-      const id = text.replace("Group ID:", "").trim();
+      const id = text.replace("Group Code:", "").trim();
 
       if (navigator.clipboard && navigator.clipboard.writeText){
         navigator.clipboard.writeText(id).then(() => {
