@@ -612,20 +612,16 @@
         displayTd.textContent = u.displayName;
 
         const roleTd = document.createElement("td");
-        if (u.role === "Admin") {
-          roleTd.textContent = "Admin";
-        } else {
-          const select = document.createElement("select");
-          ["Member", "Leader"].forEach(r => {
-            const opt = document.createElement("option");
-            opt.value = r;
-            opt.textContent = r;
-            if (r === u.role) opt.selected = true;
-            select.appendChild(opt);
-          });
-          select.onchange = () => setUserRole(u.username, select.value);
-          roleTd.appendChild(select);
-        }
+        const select = document.createElement("select");
+        ["Member", "Leader", "Admin"].forEach(r => {
+          const opt = document.createElement("option");
+          opt.value = r;
+          opt.textContent = r;
+          if (r === u.role) opt.selected = true;
+          select.appendChild(opt);
+        });
+        select.onchange = () => setUserRole(u.username, select.value);
+        roleTd.appendChild(select);
 
         const pwTd = document.createElement("td");
         const pwWrap = document.createElement("div");
