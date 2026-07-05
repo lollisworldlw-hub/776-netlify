@@ -767,7 +767,7 @@
       document.getElementById("headerAuthButtons").style.display = "flex";
       document.getElementById("logoutBtnTop").style.display = "flex";
       document.getElementById("formUsernameLabel").textContent = session.displayName;
-      document.getElementById("leadershipBtn").style.display = (session.role === "Leader") ? "inline-block" : "none";
+      document.getElementById("leadershipBtn").style.display = (session.role === "Leader" || session.role === "Admin") ? "inline-block" : "none";
       routeAfterLogin();
     }
 
