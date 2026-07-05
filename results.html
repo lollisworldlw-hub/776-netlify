@@ -265,7 +265,10 @@
       btn.disabled = true;
       try {
         const res = await api("login", { username, password });
-        setSession({ username: res.username, displayName: res.displayName, token: res.token });
+        if (res.role !== "Leader") {
+          throw new Error("This account isn't set up for leadership access. Contact Lola (ZPA R4) if you think this is wrong.");
+        }
+        setSession({ username: res.username, displayName: res.displayName, token: res.token, role: res.role });
         document.getElementById("loginPassword").value = "";
         showResultsSection();
       } catch (e) {
@@ -297,7 +300,7 @@
         const res = await api("getResults", { username: session.username, token: session.token });
         loadRows(res.rows || []);
       } catch (e) {
-        if (/session expired|not authenticated/i.test(e.message || "")) {
+        if (/session expired|not authenticated|not authorized/i.test(e.message || "")) {
           clearSession();
           showMsg("resultsMsg", "Your session expired. Please log in again.");
           setTimeout(doLogout, 1200);

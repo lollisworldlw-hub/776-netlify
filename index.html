@@ -404,7 +404,7 @@
           <button id="saveBtn" class="smallBtn" type="button" onclick="openModal()" style="display:none;">
             Save for later
           </button>
-          <a id="leadershipBtn" class="smallBtn" href="results.html" style="text-decoration:none;display:inline-block;text-align:center;">
+          <a id="leadershipBtn" class="smallBtn" href="results.html" style="text-decoration:none;display:none;text-align:center;">
             Leadership Results
           </a>
           <button id="logoutBtnTop" class="smallBtn" type="button" onclick="doMemberLogout()">
@@ -718,6 +718,7 @@
       document.getElementById("headerAuthButtons").style.display = "flex";
       document.getElementById("loggedInUserLabel").textContent = session.displayName;
       document.getElementById("formUsernameLabel").textContent = session.displayName;
+      document.getElementById("leadershipBtn").style.display = (session.role === "Leader") ? "inline-block" : "none";
     }
 
     (function initAuth(){
