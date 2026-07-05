@@ -203,6 +203,14 @@
       </div>
     </div>
 
+    <div id="notAuthorizedSection" style="display:none;">
+      <div class="loginBox" style="text-align:center;">
+        <h1>Not authorized</h1>
+        <div class="sub" style="margin:10px 0 20px;" id="notAuthorizedText"></div>
+        <a href="index.html" class="smallBtn" style="display:inline-block;text-decoration:none;">Back to survey</a>
+      </div>
+    </div>
+
     <div id="resultsSection" style="display:none;">
       <div class="hdrRow">
         <div>
@@ -272,7 +280,7 @@
 
   <script>
     const API_ENDPOINT = "/.netlify/functions/api";
-    const SESSION_KEY = "776_leadership_session_v1";
+    const SESSION_KEY = "776_survey_session_v1";
 
     const HIDDEN_COLUMNS = ["GroupID"];
     const DATE_COLUMNS = ["Timestamp"];
@@ -328,12 +336,9 @@
       btn.disabled = true;
       try {
         const res = await api("login", { username, password });
-        if (res.role !== "Leader" && res.role !== "Admin") {
-          throw new Error("This account isn't set up for leadership access. Contact Lola (ZPA R4) if you think this is wrong.");
-        }
         setSession({ username: res.username, displayName: res.displayName, token: res.token, role: res.role });
         document.getElementById("loginPassword").value = "";
-        showResultsSection();
+        routeSession();
       } catch (e) {
         showMsg("loginMsg", e.message || String(e));
       } finally {
@@ -341,9 +346,29 @@
       }
     }
 
+    function routeSession(){
+      const session = getSession();
+      if (!session) return;
+      if (session.role === "Leader" || session.role === "Admin") {
+        showResultsSection();
+      } else {
+        showNotAuthorized(session);
+      }
+    }
+
+    function showNotAuthorized(session){
+      document.getElementById("loginSection").style.display = "none";
+      document.getElementById("resultsSection").style.display = "none";
+      document.getElementById("notAuthorizedSection").style.display = "block";
+      document.getElementById("logoutBtnTop").style.display = "inline-block";
+      document.getElementById("notAuthorizedText").textContent =
+        `Logged in as ${session.displayName}, but this account doesn't have leadership access. Contact Lola (ZPA R4) if you think this is a mistake.`;
+    }
+
     function doLogout(){
       clearSession();
       document.getElementById("resultsSection").style.display = "none";
+      document.getElementById("notAuthorizedSection").style.display = "none";
       document.getElementById("loginSection").style.display = "block";
       document.getElementById("logoutBtnTop").style.display = "none";
       document.getElementById("loginUsername").value = "";
@@ -366,10 +391,12 @@
         const res = await api("getResults", { username: session.username, token: session.token });
         loadRows(res.rows || []);
       } catch (e) {
-        if (/session expired|not authenticated|not authorized/i.test(e.message || "")) {
+        if (/session expired|not authenticated/i.test(e.message || "")) {
           clearSession();
           showMsg("resultsMsg", "Your session expired. Please log in again.");
           setTimeout(doLogout, 1200);
+        } else if (/not authorized/i.test(e.message || "")) {
+          showNotAuthorized(session);
         } else {
           showMsg("resultsMsg", e.message || String(e));
         }
@@ -692,7 +719,7 @@
 
     (function init(){
       const session = getSession();
-      if (session) showResultsSection();
+      if (session) routeSession();
     })();
   </script>
 </body>
