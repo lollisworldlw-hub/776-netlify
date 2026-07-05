@@ -478,6 +478,10 @@
             <div class="hint" id="editingBanner" style="display:none;">
               Editing your existing submission. <a href="#" onclick="startNewSubmission(); return false;">Start a new one instead</a>
             </div>
+            <div class="hint" id="groupCodeDisplay" style="display:none;">
+              Your group code: <b id="groupCodeDisplayText"></b>
+              <button class="smallBtn" type="button" onclick="copyCurrentGroupCode()" style="margin-left:6px;padding:4px 8px;">Copy</button>
+            </div>
           </div>
 
           <div>
@@ -662,6 +666,25 @@
 
     function updateEditingBanner(){
       document.getElementById("editingBanner").style.display = editingEntryId ? "block" : "none";
+
+      const codeDisplay = document.getElementById("groupCodeDisplay");
+      const code = document.getElementById("groupCode").value.trim();
+      if (editingEntryId && code) {
+        document.getElementById("groupCodeDisplayText").textContent = code;
+        codeDisplay.style.display = "block";
+      } else {
+        codeDisplay.style.display = "none";
+      }
+    }
+
+    function copyCurrentGroupCode(){
+      const code = document.getElementById("groupCodeDisplayText").textContent.trim();
+      if (!code) return;
+      if (navigator.clipboard && navigator.clipboard.writeText){
+        navigator.clipboard.writeText(code).then(() => toast("Copied ✓")).catch(() => fallbackCopy_(code));
+      } else {
+        fallbackCopy_(code);
+      }
     }
 
     function startNewSubmission(){
