@@ -93,17 +93,35 @@
     }
     .btnRow{display:flex;gap:10px;flex-wrap:wrap;}
 
-    .statsBlock{margin-bottom:18px;}
-    .pillRow{display:flex;gap:10px;flex-wrap:wrap;}
+    .statsBlock{margin-bottom:12px;}
+    .pillRow{display:flex;gap:6px;flex-wrap:wrap;}
     .pill{
-      padding:10px 14px;
-      border-radius:14px;
+      padding:6px 10px;
+      border-radius:10px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(6,7,18,.45);
-      min-width:90px;
+      min-width:60px;
     }
-    .pill .pLabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
-    .pill .pValue{font-size:20px;font-weight:900;margin-top:2px;}
+    .pill .pLabel{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
+    .pill .pValue{font-size:14px;font-weight:900;margin-top:1px;}
+
+    .logoutBtn{
+      position:absolute;
+      top:20px; right:20px;
+      z-index:5;
+    }
+    .iconBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(6,7,18,.45);
+      color: var(--text);
+      border-radius: 10px;
+      width:40px; height:40px;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+    .iconBtn:hover{background: rgba(6,7,18,.7); border-color: rgba(255,255,255,.25);}
+    .iconBtn svg{width:18px;height:18px;}
 
     .filterBar{
       display:flex;align-items:center;gap:12px;
@@ -167,14 +185,12 @@
       </div>
 
       <div id="resultsSection" style="display:none;">
+        <button class="smallBtn logoutBtn" type="button" onclick="doLogout()">Log out</button>
+
         <div class="hdrRow">
           <div>
             <h1>776 Transfer Survey Results</h1>
             <div class="sub" id="resultsSub"></div>
-          </div>
-          <div class="btnRow">
-            <button class="smallBtn" type="button" onclick="exportCsv()">Export CSV</button>
-            <button class="smallBtn" type="button" onclick="doLogout()">Log out</button>
           </div>
         </div>
 
@@ -191,6 +207,13 @@
         <div class="filterBar">
           <label for="allianceFilter">Filter by alliance:</label>
           <select id="allianceFilter" onchange="onAllianceFilterChange()"></select>
+          <button class="iconBtn" type="button" onclick="exportCsv()" title="Export CSV" aria-label="Export CSV">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3v12"></path>
+              <path d="M7 10l5 5 5-5"></path>
+              <path d="M5 21h14"></path>
+            </svg>
+          </button>
         </div>
 
         <div class="msg" id="resultsMsg"></div>
