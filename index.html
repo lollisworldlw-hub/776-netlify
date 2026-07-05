@@ -239,6 +239,20 @@
       word-break:break-all;
     }
 
+    #resultsTable th, #resultsTable td{
+      text-align:left;
+      padding:8px 10px;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      white-space:nowrap;
+    }
+    #resultsTable th{
+      color:var(--muted);
+      font-size:11px;
+      text-transform:uppercase;
+      letter-spacing:.4px;
+    }
+    #resultsTable tr:hover td{background:rgba(255,255,255,.03);}
+
     @media (max-width:720px){
       .grid{grid-template-columns:1fr;}
       .btnRow{grid-template-columns:1fr;}
@@ -358,6 +372,9 @@
 
         <button id="saveBtn" class="smallBtn" type="button" onclick="openModal()" style="display:none;">
           Save for later
+        </button>
+        <button id="leadershipBtn" class="smallBtn" type="button" onclick="onLeadershipBtnClick()">
+          Leadership Login
         </button>
       </div>
 
@@ -501,6 +518,62 @@
     </div>
   </div>
 
+  <div class="modalBackdrop" id="loginModalBackdrop" onclick="closeLoginModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modalHdr">
+        <div>
+          <div style="font-weight:1000; font-size:16px;">Leadership Login</div>
+          <div class="hint">For alliance leadership only. Ask an R4 for an account.</div>
+        </div>
+        <button class="xBtn" onclick="closeLoginModal()">×</button>
+      </div>
+
+      <div class="modalGrid">
+        <div class="full" style="grid-column:1/-1;">
+          <label>Username</label>
+          <input id="loginUsername" type="text" placeholder="Leadership username" autocomplete="username">
+        </div>
+        <div class="full" style="grid-column:1/-1;">
+          <label>Password</label>
+          <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+        </div>
+        <div style="grid-column:1/-1;">
+          <button id="loginSubmitBtn" class="btn" type="button" onclick="doLogin()">Log in</button>
+        </div>
+        <div style="grid-column:1/-1;" class="msg" id="loginMsg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="resultsScreen" style="display:none;">
+    <div class="wrap">
+      <div class="card">
+        <div class="ring"></div>
+        <div class="hdr">
+          <div class="hdrLeft">
+            <div>
+              <h1 id="resultsTitle">Results</h1>
+              <div class="sub" id="resultsSub">Leadership view</div>
+            </div>
+          </div>
+          <div class="btnRow" style="width:auto;display:flex;gap:10px;">
+            <button class="smallBtn" type="button" onclick="hideResults()">Back to form</button>
+            <button class="smallBtn" type="button" onclick="doLogout()">Log out</button>
+          </div>
+        </div>
+
+        <div class="msg" id="resultsMsg"></div>
+
+        <div style="overflow-x:auto; margin-top:14px;">
+          <table id="resultsTable" style="width:100%; border-collapse:collapse; font-size:13px;">
+            <thead id="resultsThead"></thead>
+            <tbody id="resultsTbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast" style="display:none;"></div>
 
   <script>
@@ -534,6 +607,130 @@
       if (!json || json.ok !== true) throw new Error(json.error || "Request failed.");
       return json;
     }
+
+    /*********** LEADERSHIP LOGIN / SESSION ***********/
+    const SESSION_KEY = "776_leadership_session_v1";
+
+    function getSession(){
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
+      catch(e){ return null; }
+    }
+
+    function setSession(session){
+      localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      updateLeadershipBtn();
+    }
+
+    function clearSession(){
+      localStorage.removeItem(SESSION_KEY);
+      updateLeadershipBtn();
+    }
+
+    function updateLeadershipBtn(){
+      const btn = document.getElementById("leadershipBtn");
+      const session = getSession();
+      btn.textContent = session ? `View Results (${session.displayName})` : "Leadership Login";
+    }
+
+    function onLeadershipBtnClick(){
+      const session = getSession();
+      if (session) showResults();
+      else openLoginModal();
+    }
+
+    function openLoginModal(){
+      showMsg("loginMsg", "");
+      document.getElementById("loginModalBackdrop").style.display = "flex";
+    }
+    function closeLoginModal(){
+      document.getElementById("loginModalBackdrop").style.display = "none";
+    }
+
+    async function doLogin(){
+      showMsg("loginMsg", "");
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!username || !password) return showMsg("loginMsg", "Enter a username and password.");
+
+      const btn = document.getElementById("loginSubmitBtn");
+      btn.disabled = true;
+      try {
+        const res = await api("login", { username, password });
+        setSession({ username: res.username, displayName: res.displayName, token: res.token });
+        document.getElementById("loginPassword").value = "";
+        closeLoginModal();
+        showResults();
+      } catch (e) {
+        showMsg("loginMsg", e.message || String(e));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function doLogout(){
+      clearSession();
+      hideResults();
+    }
+
+    async function showResults(){
+      const session = getSession();
+      if (!session) return openLoginModal();
+
+      document.getElementById("formScreen").style.display = "none";
+      document.getElementById("successScreen").style.display = "none";
+      document.getElementById("resultsScreen").style.display = "block";
+      document.getElementById("resultsSub").textContent = `Logged in as ${session.displayName}`;
+      showMsg("resultsMsg", "Loading…", true);
+
+      try {
+        const res = await api("getResults", { username: session.username, token: session.token });
+        renderResultsTable(res.rows || []);
+        showMsg("resultsMsg", `${(res.rows || []).length} response row(s).`, true);
+      } catch (e) {
+        if (/session expired|not authenticated/i.test(e.message || "")) {
+          clearSession();
+          showMsg("resultsMsg", "Your session expired. Please log in again.");
+          setTimeout(() => { hideResults(); openLoginModal(); }, 1200);
+        } else {
+          showMsg("resultsMsg", e.message || String(e));
+        }
+      }
+    }
+
+    function hideResults(){
+      document.getElementById("resultsScreen").style.display = "none";
+      document.getElementById("formScreen").style.display = "block";
+    }
+
+    function renderResultsTable(rows){
+      const thead = document.getElementById("resultsThead");
+      const tbody = document.getElementById("resultsTbody");
+      thead.innerHTML = "";
+      tbody.innerHTML = "";
+      if (!rows.length) return;
+
+      const headers = Object.keys(rows[0]);
+      const trh = document.createElement("tr");
+      headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        trh.appendChild(th);
+      });
+      thead.appendChild(trh);
+
+      rows.forEach(row => {
+        const tr = document.createElement("tr");
+        headers.forEach(h => {
+          const td = document.createElement("td");
+          td.textContent = row[h] ?? "";
+          tr.appendChild(td);
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Restore leadership button label if a session already exists (page refresh)
+    updateLeadershipBtn();
 
     const friendsBox = document.getElementById("friendsBox");
     const friendsList = document.getElementById("friendsList");
