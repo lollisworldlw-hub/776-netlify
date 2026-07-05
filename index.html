@@ -47,6 +47,7 @@
       transform: rotate(18deg);
     }
     .hdr{display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:10px;}
+    #headerAuthButtons{display:flex; gap:10px; align-items:center; flex-wrap:wrap;}
     .hdrLeft{display:flex; gap:16px; align-items:center;}
     .logoWrap{
       width:92px;height:92px;border-radius:22px;
@@ -348,6 +349,32 @@
     option[disabled]{
       color: var(--muted);
     }
+    .authBox{max-width:380px;margin:20px auto;}
+    .authTabs{display:flex;gap:8px;margin-bottom:6px;}
+    .authTab{
+      flex:1;
+      border:1px solid rgba(255,255,255,.14);
+      background: transparent;
+      color:var(--muted);
+      border-radius:12px;
+      padding:10px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .authTab.active{
+      color:var(--text);
+      background: rgba(6,7,18,.55);
+      border-color: rgba(55,215,255,.35);
+    }
+    #mySubmissionsList{margin-top:10px;}
+    .submissionRow{
+      display:flex;justify-content:space-between;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(6,7,18,.45);
+      margin-top:8px;
+    }
+    .submissionRow .meta{font-size:12px;color:var(--muted);}
   </style>
 </head>
 
@@ -370,35 +397,79 @@
           </div>
         </div>
 
-        <button id="saveBtn" class="smallBtn" type="button" onclick="openModal()" style="display:none;">
-          Save for later
-        </button>
-        <a id="leadershipBtn" class="smallBtn" href="results.html" style="text-decoration:none;display:inline-block;text-align:center;">
-          Leadership Results
-        </a>
+        <div id="headerAuthButtons" style="display:none;">
+          <button id="mySubmissionsBtn" class="smallBtn" type="button" onclick="openMySubmissionsModal()">
+            My Submissions
+          </button>
+          <button id="saveBtn" class="smallBtn" type="button" onclick="openModal()" style="display:none;">
+            Save for later
+          </button>
+          <a id="leadershipBtn" class="smallBtn" href="results.html" style="text-decoration:none;display:inline-block;text-align:center;">
+            Leadership Results
+          </a>
+          <button id="logoutBtnTop" class="smallBtn" type="button" onclick="doMemberLogout()">
+            Log out (<span id="loggedInUserLabel"></span>)
+          </button>
+        </div>
       </div>
 
+      <div id="authScreen">
+        <div class="authBox">
+          <div class="authTabs">
+            <button id="tabLoginBtn" class="authTab active" type="button" onclick="switchAuthTab('login')">Log in</button>
+            <button id="tabSignupBtn" class="authTab" type="button" onclick="switchAuthTab('signup')">Create account</button>
+          </div>
+
+          <div id="loginTab">
+            <div style="margin-top:16px;">
+              <label>Username</label>
+              <input id="loginUsername" type="text" placeholder="Your in-game username" autocomplete="username">
+            </div>
+            <div style="margin-top:14px;">
+              <label>Password</label>
+              <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+            </div>
+            <button id="loginSubmitBtn" class="btn" type="button" onclick="doLogin()" style="margin-top:16px;">Log in</button>
+            <div class="msg" id="loginMsg"></div>
+          </div>
+
+          <div id="signupTab" style="display:none;">
+            <div style="margin-top:16px;">
+              <label>Choose a username</label>
+              <input id="signupUsername" type="text" placeholder="Your in-game username" autocomplete="username">
+            </div>
+            <div style="margin-top:14px;">
+              <label>Choose a password</label>
+              <input id="signupPassword" type="password" placeholder="At least 4 characters" autocomplete="new-password">
+            </div>
+            <button id="signupSubmitBtn" class="btn" type="button" onclick="doSignup()" style="margin-top:16px;">Create account</button>
+            <div class="hint" style="margin-top:10px;">Forgot your password? Contact Lola (ZPA R4) to reset it.</div>
+            <div class="msg" id="signupMsg"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="surveyApp" style="display:none;">
       <div id="formScreen">
         <div class="grid">
-          <div>
-            <label>1) Username <span style="color:var(--danger)">*</span></label>
-            <input id="username" type="text" placeholder="Your in-game username" required>
+          <div class="full" id="loggedInAsRow" style="margin-bottom:4px;">
+            <div class="hint">Submitting as <b id="formUsernameLabel"></b></div>
           </div>
 
           <div>
-            <label>2) Current Alliance <span style="color:var(--danger)">*</span></label>
+            <label>1) Current Alliance <span style="color:var(--danger)">*</span></label>
             <input id="currentAlliance" type="text" maxlength="4" placeholder="e.g. ZPA2" required>
             <div class="miniLabel"></div>
           </div>
 
           <div>
-            <label>3) Current Server <span style="color:var(--danger)">*</span></label>
+            <label>2) Current Server <span style="color:var(--danger)">*</span></label>
             <input id="currentServer" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 776" required>
             <div class="miniLabel"></div>
           </div>
 
           <div>
-            <label>4) Total hero power <span style="color:var(--danger)">*</span></label>
+            <label>3) Total hero power <span style="color:var(--danger)">*</span></label>
             <div class="inlineM">
               <input id="totalHeroPowerM" type="text" inputmode="numeric" maxlength="3" placeholder="e.g. 245" required>
               <div class="mBadge">M</div>
@@ -416,7 +487,7 @@
           </div>
 
           <div class="full">
-            <label>5) Are you looking to come with friends? <span style="color:var(--danger)">*</span></label>
+            <label>4) Are you looking to come with friends? <span style="color:var(--danger)">*</span></label>
             <div class="radioPills">
               <label class="pill">
                 <input type="radio" name="coming" id="comingNo" value="No" checked>
@@ -432,7 +503,7 @@
           <div class="full friendsBox" id="friendsBox" style="display:none;">
             <div class="friendsTop">
               <div>
-                <div style="font-weight:1000;">6) Friends (only if Yes)</div>
+                <div style="font-weight:1000;">5) Friends (only if Yes)</div>
                 <div class="hint">Add all your friends below. *Use last transfer seat color if not assigned yet.</div>
               </div>
               <button class="btn ghost tinyBtn" type="button" onclick="addFriendRow()">+ Add friend</button>
@@ -441,7 +512,7 @@
           </div>
 
           <div>
-            <label>7) Which alliance are you interested in joining? <span style="color:var(--danger)">*</span></label>
+            <label>6) Which alliance are you interested in joining? <span style="color:var(--danger)">*</span></label>
             <select id="interestedAlliance" onchange="toggleOtherAlliance()" required>
               <option value="" selected disabled>Select one</option>
               <option>Any</option>
@@ -474,7 +545,7 @@
 
       <div id="successScreen" style="display:none;">
         <div style="margin-top:10px;">
-          <div class="successTitle">Submitted ✅</div>
+          <div class="successTitle" id="successTitle">Submitted ✅</div>
           <div class="hint">Thanks! Your response is saved. If you came with friends, they’re linked in the same Group ID.</div>
           <div class="badge" id="groupBadge"></div>
           <button class="btn ghost" type="button" onclick="copyGroupId()" style="margin-top:10px;">
@@ -485,6 +556,8 @@
             <button class="btn ghost" type="button" onclick="window.close()">Close</button>
           </div>
         </div>
+      </div>
+
       </div>
 
     </div>
@@ -515,6 +588,20 @@
 
         <div style="grid-column:1/-1;" class="msg" id="draftMsg"></div>
       </div>
+    </div>
+  </div>
+
+  <div class="modalBackdrop" id="mySubmissionsBackdrop" onclick="closeMySubmissionsModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modalHdr">
+        <div>
+          <div style="font-weight:1000; font-size:16px;">My Submissions</div>
+          <div class="hint">Pick one to load it into the form for editing.</div>
+        </div>
+        <button class="xBtn" onclick="closeMySubmissionsModal()">×</button>
+      </div>
+      <div class="msg" id="mySubmissionsMsg"></div>
+      <div id="mySubmissionsList"></div>
     </div>
   </div>
 
@@ -550,6 +637,149 @@
       const json = await res.json().catch(() => ({}));
       if (!json || json.ok !== true) throw new Error(json.error || "Request failed.");
       return json;
+    }
+
+    /*********** ACCOUNT / SESSION ***********/
+    const SESSION_KEY = "776_survey_session_v1";
+    let editingGroupId = null;
+
+    function getSession(){
+      try { return JSON.parse(localStorage.getItem(SESSION_KEY) || "null"); }
+      catch(e){ return null; }
+    }
+    function setSession(session){ localStorage.setItem(SESSION_KEY, JSON.stringify(session)); }
+    function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+    function switchAuthTab(tab){
+      const isLogin = tab === "login";
+      document.getElementById("tabLoginBtn").classList.toggle("active", isLogin);
+      document.getElementById("tabSignupBtn").classList.toggle("active", !isLogin);
+      document.getElementById("loginTab").style.display = isLogin ? "block" : "none";
+      document.getElementById("signupTab").style.display = isLogin ? "none" : "block";
+      showMsg("loginMsg", "");
+      showMsg("signupMsg", "");
+    }
+
+    async function doLogin(){
+      showMsg("loginMsg", "");
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!username || !password) return showMsg("loginMsg", "Enter a username and password.");
+
+      const btn = document.getElementById("loginSubmitBtn");
+      btn.disabled = true;
+      try {
+        const res = await api("login", { username, password });
+        setSession({ username: res.username, displayName: res.displayName, token: res.token, role: res.role });
+        document.getElementById("loginPassword").value = "";
+        enterSurveyApp();
+      } catch (e) {
+        showMsg("loginMsg", e.message || String(e));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function doSignup(){
+      showMsg("signupMsg", "");
+      const username = document.getElementById("signupUsername").value.trim();
+      const password = document.getElementById("signupPassword").value;
+      if (!username || !password) return showMsg("signupMsg", "Choose a username and password.");
+
+      const btn = document.getElementById("signupSubmitBtn");
+      btn.disabled = true;
+      try {
+        const res = await api("signup", { username, password });
+        setSession({ username: res.username, displayName: res.displayName, token: res.token, role: res.role });
+        document.getElementById("signupPassword").value = "";
+        enterSurveyApp();
+      } catch (e) {
+        showMsg("signupMsg", e.message || String(e));
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    function doMemberLogout(){
+      clearSession();
+      editingGroupId = null;
+      document.getElementById("surveyApp").style.display = "none";
+      document.getElementById("headerAuthButtons").style.display = "none";
+      document.getElementById("authScreen").style.display = "block";
+      document.getElementById("loginUsername").value = "";
+    }
+
+    function enterSurveyApp(){
+      const session = getSession();
+      if (!session) return;
+
+      document.getElementById("authScreen").style.display = "none";
+      document.getElementById("surveyApp").style.display = "block";
+      document.getElementById("headerAuthButtons").style.display = "flex";
+      document.getElementById("loggedInUserLabel").textContent = session.displayName;
+      document.getElementById("formUsernameLabel").textContent = session.displayName;
+    }
+
+    (function initAuth(){
+      const session = getSession();
+      if (session) enterSurveyApp();
+    })();
+
+    /*********** MY SUBMISSIONS ***********/
+    async function openMySubmissionsModal(){
+      const session = getSession();
+      if (!session) return;
+
+      document.getElementById("mySubmissionsBackdrop").style.display = "flex";
+      showMsg("mySubmissionsMsg", "Loading…", true);
+      document.getElementById("mySubmissionsList").innerHTML = "";
+
+      try {
+        const res = await api("getMySubmissions", { username: session.username, token: session.token });
+        const subs = res.submissions || [];
+        if (!subs.length) {
+          showMsg("mySubmissionsMsg", "You haven't submitted yet.");
+          return;
+        }
+        showMsg("mySubmissionsMsg", `${subs.length} submission(s).`, true);
+        const list = document.getElementById("mySubmissionsList");
+        subs.forEach(s => {
+          const d = new Date(s.timestamp);
+          const dateStr = isNaN(d) ? s.timestamp : d.toLocaleDateString("en-US", { year:"numeric", month:"short", day:"numeric" });
+          const row = document.createElement("div");
+          row.className = "submissionRow";
+          row.innerHTML = `
+            <div class="meta">${dateStr} — ${s.currentAlliance || ""} → interested in ${s.interestedAlliance || ""}</div>
+            <button class="btn ghost tinyBtn" type="button">Edit</button>
+          `;
+          row.querySelector("button").onclick = () => loadSubmissionForEdit(s.groupId);
+          list.appendChild(row);
+        });
+      } catch (e) {
+        showMsg("mySubmissionsMsg", e.message || String(e));
+      }
+    }
+
+    function closeMySubmissionsModal(){
+      document.getElementById("mySubmissionsBackdrop").style.display = "none";
+    }
+
+    async function loadSubmissionForEdit(groupId){
+      const session = getSession();
+      if (!session) return;
+
+      try {
+        const res = await api("loadSubmission", { username: session.username, token: session.token, groupId });
+        applyPayload(res.payload);
+        editingGroupId = groupId;
+        closeMySubmissionsModal();
+        document.getElementById("formScreen").style.display = "block";
+        document.getElementById("successScreen").style.display = "none";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        toast("Loaded your submission — make changes and hit Update ✓");
+      } catch (e) {
+        showMsg("mySubmissionsMsg", e.message || String(e));
+      }
     }
 
     const friendsBox = document.getElementById("friendsBox");
@@ -609,7 +839,6 @@
 
     function getPayload(){
       return {
-        username: document.getElementById("username").value.trim(),
         currentAlliance: document.getElementById("currentAlliance").value.trim(),
         currentServer: document.getElementById("currentServer").value.trim(),
         totalHeroPowerM: document.getElementById("totalHeroPowerM").value.trim(),
@@ -760,7 +989,6 @@
     }
 
     function applyPayload(p){
-      document.getElementById("username").value = p.username || "";
       document.getElementById("currentAlliance").value = p.currentAlliance || "";
       document.getElementById("currentServer").value = p.currentServer || "";
       document.getElementById("totalHeroPowerM").value = p.totalHeroPowerM || "";
@@ -800,6 +1028,9 @@
     async function submitFinal(){
       showMsg("msg", "");
 
+      const session = getSession();
+      if (!session) return showMsg("msg", "Please log in first.");
+
       const btn = document.getElementById("submitBtn");
       const btnText = document.getElementById("submitBtnText");
 
@@ -808,18 +1039,23 @@
       btn.dataset.loading = "1";
       btn.disabled = true;
       btn.classList.add("loading");
-      if (btnText) btnText.textContent = "Submitting...";
+      if (btnText) btnText.textContent = editingGroupId ? "Updating..." : "Submitting...";
 
       try{
         // REQUIRED: validate seat colors before submit
         validateSeatColors_();
 
-        const res = await api("submitSurvey", { payload: getPayload() });
+        const authFields = { username: session.username, token: session.token };
+        const res = editingGroupId
+          ? await api("updateSurvey", { ...authFields, groupId: editingGroupId, payload: getPayload() })
+          : await api("submitSurvey", { ...authFields, payload: getPayload() });
 
+        document.getElementById("successTitle").textContent = editingGroupId ? "Updated ✅" : "Submitted ✅";
         document.getElementById("formScreen").style.display = "none";
         document.getElementById("successScreen").style.display = "block";
         document.getElementById("groupBadge").textContent = "Group ID: " + res.groupId;
 
+        editingGroupId = null;
         closeModal();
       }catch(err){
         showMsg("msg", (err.name === "AbortError")
@@ -835,13 +1071,13 @@
 
     function submitAnother(){
       resetForm();
+      editingGroupId = null;
       document.getElementById("successScreen").style.display = "none";
       document.getElementById("formScreen").style.display = "block";
       window.scrollTo({top:0, behavior:"smooth"});
     }
 
     function resetForm(){
-      document.getElementById("username").value = "";
       document.getElementById("currentAlliance").value = "";
       document.getElementById("currentServer").value = "";
       document.getElementById("totalHeroPowerM").value = "";
