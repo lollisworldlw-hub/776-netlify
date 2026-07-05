@@ -24,25 +24,15 @@
         linear-gradient(180deg, #050510, #070812 35%, #050510);
       min-height:100vh;
     }
-    .wrap{max-width:1100px;margin:0 auto;}
-    .card{
-      border:1px solid var(--stroke);
-      background:var(--panel);
-      border-radius:18px;
-      padding:22px;
-      box-shadow: 0 0 0 1px rgba(0,0,0,.25), 0 18px 60px rgba(0,0,0,.55);
-      backdrop-filter: blur(10px);
-      position:relative;
-      overflow:hidden;
-    }
-    .logoRow{
+    .wrap{max-width:1400px;margin:0 auto;}
+    .topBar{
       display:flex;
-      justify-content:center;
-      margin-bottom:16px;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:20px;
     }
-    .logoRow a{ display:inline-block; }
-    .logoRow img{
-      width:72px;height:72px;border-radius:18px;
+    .topBar img{
+      width:64px;height:64px;border-radius:16px;
       border:1px solid rgba(255,255,255,.10);
       background: rgba(6,7,18,.55);
       object-fit:contain;
@@ -105,11 +95,6 @@
     .pill .pLabel{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;}
     .pill .pValue{font-size:14px;font-weight:900;margin-top:1px;}
 
-    .logoutBtn{
-      position:absolute;
-      top:20px; right:20px;
-      z-index:5;
-    }
     .iconBtn{
       border:1px solid rgba(255,255,255,.14);
       background: rgba(6,7,18,.45);
@@ -157,73 +142,68 @@
 </head>
 <body>
   <div class="wrap">
-    <div class="logoRow">
+    <div class="topBar">
       <a href="index.html" title="Back to survey">
         <img src="/assets/logo.png" alt="776 logo">
       </a>
+      <button id="logoutBtnTop" class="smallBtn" type="button" onclick="doLogout()" style="display:none;">Log out</button>
     </div>
 
-    <div class="card">
-      <div class="ring"></div>
+    <div id="loginSection">
+      <div class="loginBox">
+        <h1 style="text-align:center;">Leadership Login</h1>
+        <div class="sub" style="text-align:center;margin-bottom:20px;">For alliance leadership only. Ask an R4 for an account.</div>
 
-      <div id="loginSection">
-        <div class="loginBox">
-          <h1 style="text-align:center;">Leadership Login</h1>
-          <div class="sub" style="text-align:center;margin-bottom:20px;">For alliance leadership only. Ask an R4 for an account.</div>
+        <div class="field">
+          <label>Username</label>
+          <input id="loginUsername" type="text" placeholder="Leadership username" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
+        </div>
+        <button id="loginSubmitBtn" class="btn" type="button" onclick="doLogin()">Log in</button>
+        <div class="msg" id="loginMsg"></div>
+      </div>
+    </div>
 
-          <div class="field">
-            <label>Username</label>
-            <input id="loginUsername" type="text" placeholder="Leadership username" autocomplete="username">
-          </div>
-          <div class="field">
-            <label>Password</label>
-            <input id="loginPassword" type="password" placeholder="Password" autocomplete="current-password">
-          </div>
-          <button id="loginSubmitBtn" class="btn" type="button" onclick="doLogin()">Log in</button>
-          <div class="msg" id="loginMsg"></div>
+    <div id="resultsSection" style="display:none;">
+      <div class="hdrRow">
+        <div>
+          <h1>776 Transfer Survey Results</h1>
+          <div class="sub" id="resultsSub"></div>
         </div>
       </div>
 
-      <div id="resultsSection" style="display:none;">
-        <button class="smallBtn logoutBtn" type="button" onclick="doLogout()">Log out</button>
+      <div class="statsBlock">
+        <h2>By seat color</h2>
+        <div class="pillRow" id="colorStats"></div>
+      </div>
 
-        <div class="hdrRow">
-          <div>
-            <h1>776 Transfer Survey Results</h1>
-            <div class="sub" id="resultsSub"></div>
-          </div>
-        </div>
+      <div class="statsBlock">
+        <h2>By interested alliance</h2>
+        <div class="pillRow" id="allianceStats"></div>
+      </div>
 
-        <div class="statsBlock">
-          <h2>By seat color</h2>
-          <div class="pillRow" id="colorStats"></div>
-        </div>
+      <div class="filterBar">
+        <label for="allianceFilter">Filter by alliance:</label>
+        <select id="allianceFilter" onchange="onAllianceFilterChange()"></select>
+        <button class="iconBtn" type="button" onclick="exportCsv()" title="Export CSV" aria-label="Export CSV">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3v12"></path>
+            <path d="M7 10l5 5 5-5"></path>
+            <path d="M5 21h14"></path>
+          </svg>
+        </button>
+      </div>
 
-        <div class="statsBlock">
-          <h2>By interested alliance</h2>
-          <div class="pillRow" id="allianceStats"></div>
-        </div>
+      <div class="msg" id="resultsMsg"></div>
 
-        <div class="filterBar">
-          <label for="allianceFilter">Filter by alliance:</label>
-          <select id="allianceFilter" onchange="onAllianceFilterChange()"></select>
-          <button class="iconBtn" type="button" onclick="exportCsv()" title="Export CSV" aria-label="Export CSV">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M12 3v12"></path>
-              <path d="M7 10l5 5 5-5"></path>
-              <path d="M5 21h14"></path>
-            </svg>
-          </button>
-        </div>
-
-        <div class="msg" id="resultsMsg"></div>
-
-        <div style="overflow-x:auto; margin-top:10px;">
-          <table id="resultsTable">
-            <thead id="resultsThead"></thead>
-            <tbody id="resultsTbody"></tbody>
-          </table>
-        </div>
+      <div style="overflow-x:auto; margin-top:10px;">
+        <table id="resultsTable">
+          <thead id="resultsThead"></thead>
+          <tbody id="resultsTbody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -299,6 +279,7 @@
       clearSession();
       document.getElementById("resultsSection").style.display = "none";
       document.getElementById("loginSection").style.display = "block";
+      document.getElementById("logoutBtnTop").style.display = "none";
       document.getElementById("loginUsername").value = "";
     }
 
@@ -308,6 +289,7 @@
 
       document.getElementById("loginSection").style.display = "none";
       document.getElementById("resultsSection").style.display = "block";
+      document.getElementById("logoutBtnTop").style.display = "inline-block";
       document.getElementById("resultsSub").textContent = `Logged in as ${session.displayName}`;
       showMsg("resultsMsg", "Loading…", true);
 
